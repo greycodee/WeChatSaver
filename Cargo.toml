@@ -1,0 +1,2 @@
+[workspace]
+members = ["silkv3-rs", "wechat-saver"]
