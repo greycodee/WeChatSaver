@@ -1,1 +1,5 @@
 # WeChatSaver
+
+
+## Dependencies
+- FFmpeg
