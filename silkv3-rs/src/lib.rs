@@ -13,27 +13,17 @@ pub fn get_silk_version() -> String {
     }
 }
 
-extern "C" {
-    // pub fn my_c_function(a: i32, b: i32) -> i32;
-    /**************************/
-    /* Get the version number */
-    /**************************/
-    /* Return a pointer to string specifying the version */
-    // const char *SKP_Silk_SDK_get_version()
-    // {
-    // static const char version[] = "1.0.9.6";
-    // return version;
-    // }
-    fn SKP_Silk_SDK_get_version() -> *const i8;
+pub fn silk_decoder(in_file: &str, out_file: &str) -> i32 {
+    let in_file = std::ffi::CString::new(in_file).unwrap();
+    let out_file = std::ffi::CString::new(out_file).unwrap();
+    unsafe {
+        silk_v3_decoder(in_file.as_ptr(), out_file.as_ptr())
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+extern "C" {
+    fn SKP_Silk_SDK_get_version() -> *const i8;
+    // int silk_v3_decoder(char* in_file, char* out_file)
+    fn silk_v3_decoder(in_file: *const i8, out_file: *const i8) -> i32;
 }
