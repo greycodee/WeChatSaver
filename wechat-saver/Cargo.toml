@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 silkv3-rs = { path = "../silkv3-rs" }
+tar = "0.4.42"

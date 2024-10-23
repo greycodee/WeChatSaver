@@ -1,8 +1,12 @@
+mod android_backup_tar;
 
 // use silkv3_rs::my_c_function;
 use silkv3_rs::get_silk_version;
 use silkv3_rs::silk_decoder;
+use android_backup_tar::file_util;
+
 fn main() {
+    // file_util::test();
     println!("Hello, world!");
     let silk_version = get_silk_version();
     println!("Silk version: {}", silk_version);
