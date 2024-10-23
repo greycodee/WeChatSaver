@@ -1,4 +1,4 @@
-pub mod file_util{
+pub mod file{
     use std::fs::File;
     use std::io;
     use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
@@ -34,11 +34,11 @@ pub mod file_util{
 
 mod test{
     use std::fs::File;
-    use crate::android_backup_tar::file_util::{find_capture_position, file_extract};
+    use crate::android_backup::file::{find_capture_position, file_extract};
 
     #[test]
     fn test_file_capture(){
-        let mut file = File::open("/tmp/mms.bak");
+        let file = File::open("/tmp/mms.bak");
         match file {
             Ok(mut f)=>{
                 let pointer = find_capture_position(&mut f);
