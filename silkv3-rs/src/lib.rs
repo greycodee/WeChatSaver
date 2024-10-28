@@ -1,3 +1,4 @@
+mod SKP_Silk_SDK_API_BINDINGS;
 
 pub fn add(left: i32, right: i32) -> i32 {
     left + right
@@ -6,7 +7,7 @@ pub fn add(left: i32, right: i32) -> i32 {
 
 pub fn get_silk_version() -> String {
     unsafe {
-        let result = SKP_Silk_SDK_get_version();
+        let result = SKP_Silk_SDK_API_BINDINGS::SKP_Silk_SDK_get_version();
         let c_str = std::ffi::CStr::from_ptr(result);
         let str_slice = c_str.to_str().unwrap();
         str_slice.to_string()
@@ -23,7 +24,17 @@ pub fn silk_decoder(in_file: &str, out_file: &str) -> i32 {
 
 
 extern "C" {
-    fn SKP_Silk_SDK_get_version() -> *const i8;
+    // fn SKP_Silk_SDK_get_version() -> *const i8;
     // int silk_v3_decoder(char* in_file, char* out_file)
     fn silk_v3_decoder(in_file: *const i8, out_file: *const i8) -> i32;
+}
+
+#[cfg(test)]
+mod test{
+
+    #[test]
+    fn test_SKP_Silk_SDK_get_version(){
+        let silk_version = super::get_silk_version();
+        println!("Silk version: {}", silk_version);
+    }
 }

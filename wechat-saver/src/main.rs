@@ -1,5 +1,7 @@
 mod android_backup;
 mod ffmpeg;
+mod wechat;
+mod sqlite;
 
 // use silkv3_rs::my_c_function;
 use silkv3_rs::get_silk_version;
