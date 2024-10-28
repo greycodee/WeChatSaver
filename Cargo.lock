@@ -465,6 +465,7 @@ name = "wechat-saver"
 version = "0.1.0"
 dependencies = [
  "hex",
+ "libc",
  "md-5",
  "rusqlite",
  "silkv3-rs",

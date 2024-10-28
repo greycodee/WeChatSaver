@@ -13,9 +13,12 @@ fn main() {
     let decode_version = voice_decode::get_version();
     println!("decode_version: {}", decode_version.unwrap());
 
-
-    // let res = silk_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
+    // let res = silkv3_rs::silk_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
     // println!("Result: {}", res);
+
+
+    let res = voice_decode::silk_v3_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
+    println!("Result: {}", res);
     // unsafe {
     //     let result = SKP_Silk_SDK_get_version();
     //     let c_str = std::ffi::CStr::from_ptr(result);
