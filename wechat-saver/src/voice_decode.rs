@@ -1,26 +1,20 @@
-use silkv3_rs::bindings::*;
-
-pub fn get_version() -> Result<String, std::str::Utf8Error>{
-    unsafe {
-        let result = SKP_Silk_SDK_get_version();
-        let c_str = std::ffi::CStr::from_ptr(result);
-        let str_slice = c_str.to_str()?;
-        Ok(str_slice.to_string())
-    }
-}
+use silkv3_rs::bindings::{
+    SKP_SILK_SDK_DecControlStruct, SKP_Silk_SDK_Decode, SKP_Silk_SDK_Get_Decoder_Size,
+    SKP_Silk_SDK_InitDecoder, SKP_Silk_SDK_get_version, SKP_Silk_SDK_search_for_LBRR,
+};
 use std::fs::File;
 use std::io::{Read, Write};
 
 const MAX_BYTES_PER_FRAME: usize = 1024;
 const MAX_INPUT_FRAMES: usize = 5;
-const MAX_FRAME_LENGTH: usize = 480;
+// const MAX_FRAME_LENGTH: usize = 480;
 const FRAME_LENGTH_MS: usize = 20;
 const MAX_API_FS_KHZ: usize = 48;
 const MAX_LBRR_DELAY: usize = 2;
 
 pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> i32 {
     let mut tottime: u64 = 0;
-    let mut tot_packets: i32 = 0;
+    let mut _tot_packets: i32 = 0;
     let mut payload = vec![0u8; MAX_BYTES_PER_FRAME * MAX_INPUT_FRAMES * (MAX_LBRR_DELAY + 1)];
     let mut fecpayload = vec![0u8; MAX_BYTES_PER_FRAME * MAX_INPUT_FRAMES];
     let mut n_bytes_per_packet = vec![0i16; MAX_LBRR_DELAY + 1];
@@ -71,26 +65,42 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> i32 {
     let mut payload_end = 0;
     for i in 0..MAX_LBRR_DELAY {
         let mut n_bytes: i16 = 0;
-        bit_in_file.read_exact(unsafe { std::slice::from_raw_parts_mut(&mut n_bytes as *mut _ as *mut u8, 2) }).unwrap();
-        bit_in_file.read_exact(&mut payload[payload_end..payload_end + n_bytes as usize]).unwrap();
+        bit_in_file
+            .read_exact(unsafe {
+                std::slice::from_raw_parts_mut(&mut n_bytes as *mut _ as *mut u8, 2)
+            })
+            .unwrap();
+        bit_in_file
+            .read_exact(&mut payload[payload_end..payload_end + n_bytes as usize])
+            .unwrap();
         n_bytes_per_packet[i] = n_bytes;
         payload_end += n_bytes as usize;
-        tot_packets += 1;
+        _tot_packets += 1;
     }
+
+    // let mut tot_len = 0;
 
     loop {
         let mut n_bytes: i16 = 0;
-        if bit_in_file.read_exact(unsafe { std::slice::from_raw_parts_mut(&mut n_bytes as *mut _ as *mut u8, 2) }).is_err() {
+        if bit_in_file
+            .read_exact(unsafe {
+                std::slice::from_raw_parts_mut(&mut n_bytes as *mut _ as *mut u8, 2)
+            })
+            .is_err()
+        {
             break;
         }
         if n_bytes < 0 {
             break;
         }
-        if bit_in_file.read_exact(&mut payload[payload_end..payload_end + n_bytes as usize]).is_err() {
+        if bit_in_file
+            .read_exact(&mut payload[payload_end..payload_end + n_bytes as usize])
+            .is_err()
+        {
             break;
         }
 
-        let mut lost = 0;
+        let mut _lost = 0;
         let mut payload_to_dec = &payload[..];
         unsafe {
             if ((libc::rand() >> 16) + (1 << 15)) as f32 / 65535.0 >= 0.0 {
@@ -102,7 +112,7 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> i32 {
         }
 
         if n_bytes_per_packet[0] == 0 {
-            lost = 1;
+            _lost = 1;
             let mut payload_ptr = &payload[..];
             for i in 0..MAX_LBRR_DELAY {
                 if n_bytes_per_packet[i + 1] > 0 {
@@ -119,23 +129,23 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> i32 {
                     if n_bytes_fec > 0 {
                         payload_to_dec = &fecpayload[..];
                         n_bytes = n_bytes_fec;
-                        lost = 0;
+                        _lost = 0;
                         break;
                     }
                 }
                 payload_ptr = &payload_ptr[n_bytes_per_packet[i + 1] as usize..];
             }
         } else {
-            lost = 0;
+            _lost = 0;
             n_bytes = n_bytes_per_packet[0];
             payload_to_dec = &payload[..];
         }
 
         let mut out_ptr = &mut out[..];
         let mut tot_len = 0;
-        let starttime = std::time::Instant::now();
+        let start_time = std::time::Instant::now();
 
-        if lost == 0 {
+        if _lost == 0 {
             let mut frames = 0;
             loop {
                 let mut len: i16 = 0;
@@ -187,14 +197,18 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> i32 {
             }
         }
 
-        tottime += starttime.elapsed().as_micros() as u64;
-        tot_packets += 1;
+        tottime += start_time.elapsed().as_micros() as u64;
+        _tot_packets += 1;
 
-        speech_out_file.write_all(unsafe { std::slice::from_raw_parts(out.as_ptr() as *const u8, tot_len * 2) }).unwrap();
+        speech_out_file
+            .write_all(unsafe {
+                std::slice::from_raw_parts(out.as_ptr() as *const u8, tot_len * 2)
+            })
+            .unwrap();
 
-        let mut tot_bytes = 0;
+        let mut _tot_bytes = 0;
         for i in 0..MAX_LBRR_DELAY {
-            tot_bytes += n_bytes_per_packet[i + 1] as usize;
+            _tot_bytes += n_bytes_per_packet[i + 1] as usize;
         }
         payload.copy_within(n_bytes_per_packet[0] as usize..payload_end, 0);
         payload_end -= n_bytes_per_packet[0] as usize;
@@ -205,15 +219,17 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> i32 {
         libc::free(ps_dec);
     }
 
-    // let filetime = totPackets as f64 * 1e-3 * (tot_len as f64 / (DecControl.API_sampleRate as f64 / 1000.0));
-    // println!(
-    //     "File length: {:.3} s\nTime for decoding: {:.3} s ({:.3}% of realtime)",
-    //     100,
-    //     tottime as f64 * 1e-6,
-    //     tottime as f64 * 1e-4 / 100
-    // );
-
+    println!("Decoding Finished: {} ms", tottime / 1000);
     0
+}
+
+pub fn get_version() -> Result<String, std::str::Utf8Error> {
+    unsafe {
+        let result = SKP_Silk_SDK_get_version();
+        let c_str = std::ffi::CStr::from_ptr(result);
+        let str_slice = c_str.to_str()?;
+        Ok(str_slice.to_string())
+    }
 }
 
 #[cfg(test)]
@@ -222,7 +238,10 @@ mod test {
 
     #[test]
     fn test_silk_v3_decoder() {
-        let res = silk_v3_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
+        let res = silk_v3_decoder(
+            "/tmp/msg_152059061922b0890a24269102.amr",
+            "/tmp/msg_152059061922b0890a24269102.pcm",
+        );
         assert_eq!(res, 0);
     }
 
