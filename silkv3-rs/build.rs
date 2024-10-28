@@ -1,8 +1,6 @@
-use std::path::{Path, PathBuf};
-use bindgen::CargoCallbacks;
+use std::path::Path;
 
 fn main() {
-
     let mut files = Vec::new();
     recursion(&mut files, "silk/interface").unwrap();
     recursion(&mut files, "silk/src").unwrap();
@@ -14,21 +12,13 @@ fn main() {
         .compile("silk");
 
     let bindings = bindgen::Builder::default()
-        // The input header we would like to generate
-        // bindings for.
-        .header("silk/interface/SKP_Silk_SDK_API.h")
-        // Tell cargo to invalidate the built crate whenever any of the
-        // included header files changed.
-        .parse_callbacks(Box::new(CargoCallbacks::new()))
-        // Finish the builder and generate the bindings.
+        .header("silk/include/wrapper.h")
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
-        // Unwrap the Result and panic on failure.
         .expect("Unable to generate bindings");
 
-    // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from("src").join("SKP_Silk_SDK_API_BINDINGS.rs");
     bindings
-        .write_to_file(out_path)
+        .write_to_file("src/bindings.rs")
         .expect("Couldn't write bindings!");
 }
 
