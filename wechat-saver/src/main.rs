@@ -2,15 +2,19 @@ mod android_backup;
 mod ffmpeg;
 mod wechat;
 mod sqlite;
+mod voice_decode;
 
-use silkv3_rs::silk_v3_decoder;
 
 
 
 fn main() {
     // file_util::test();
     println!("Hello, world!");
-    let res = silk_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
+    let decode_version = voice_decode::get_version();
+    println!("decode_version: {}", decode_version.unwrap());
+
+
+    // let res = silk_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
     // println!("Result: {}", res);
     // unsafe {
     //     let result = SKP_Silk_SDK_get_version();

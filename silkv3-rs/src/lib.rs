@@ -1,4 +1,4 @@
-mod bindings;
+pub mod bindings;
 
 
 pub fn silk_decoder(in_file: &str, out_file: &str) -> i32 {
