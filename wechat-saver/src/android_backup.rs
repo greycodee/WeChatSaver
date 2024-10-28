@@ -38,13 +38,13 @@ mod test{
 
     #[test]
     fn test_file_capture(){
-        let file = File::open("/tmp/mms.bak");
+        let file = File::open("/Users/zheng/Downloads/20241024_091952/wechat.bak");
         match file {
             Ok(mut f)=>{
                 let pointer = find_capture_position(&mut f);
                 match pointer {
                     Ok(p) =>{
-                        match file_extract(&mut f,"/tmp/mmsdemo"){
+                        match file_extract(&mut f,"/Users/zheng/Downloads/20241024_091952"){
                             Ok(_) => {}
                             Err(e) => {
                                 panic!("{}",e);

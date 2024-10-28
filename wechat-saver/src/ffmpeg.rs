@@ -2,7 +2,7 @@ use std::io::Error;
 use std::process::Command;
 
 pub fn verify_ffmpeg_install() -> Result<(),Error>{
-    let output = Command::new("ffmpeg")
+    Command::new("ffmpeg")
         .arg("-version")
         .output()?;
     Ok(())

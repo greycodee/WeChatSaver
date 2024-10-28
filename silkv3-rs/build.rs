@@ -1,7 +1,6 @@
 use std::path::Path;
 
 fn main() {
-
     let mut files = Vec::new();
     recursion(&mut files, "silk/interface").unwrap();
     recursion(&mut files, "silk/src").unwrap();
@@ -11,6 +10,16 @@ fn main() {
         .includes(["silk/src", "silk/interface"])
         .files(files)
         .compile("silk");
+
+    let bindings = bindgen::Builder::default()
+        .header("silk/include/wrapper.h")
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+        .generate()
+        .expect("Unable to generate bindings");
+
+    bindings
+        .write_to_file("src/bindings.rs")
+        .expect("Couldn't write bindings!");
 }
 
 fn recursion<P: AsRef<Path>>(v: &mut Vec<String>, dir: P) -> std::io::Result<()> {
