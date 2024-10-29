@@ -4,7 +4,7 @@ use silkv3_rs::bindings::{
 };
 use std::fs::File;
 use std::io;
-use std::io::{Read, Write};
+use std::io::{Read, Seek, Write};
 
 const MAX_BYTES_PER_FRAME: usize = 1024;
 const MAX_INPUT_FRAMES: usize = 5;
@@ -78,6 +78,9 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
     }
 
     // let mut tot_len = 0;
+    let total_size = bit_in_file.metadata()?.len();
+    #[allow(unused_assignments)]
+    let mut processed_size = bit_in_file.stream_position()?;
 
     loop {
         let mut n_bytes: i16 = 0;
@@ -211,6 +214,10 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
         payload.copy_within(n_bytes_per_packet[0] as usize..payload_end, 0);
         payload_end -= n_bytes_per_packet[0] as usize;
         n_bytes_per_packet.copy_within(1.., 0);
+
+        processed_size = bit_in_file.stream_position()?;
+        let progress = (processed_size as f64 / total_size as f64) * 100.0;
+        println!("Progress: {:.2}% ", progress);
     }
 
     unsafe {
