@@ -18,7 +18,15 @@ fn main() {
 
 
     let res = voice_decode::silk_v3_decoder("/tmp/msg_152059061922b0890a24269102.amr", "/tmp/msg_152059061922b0890a24269102.pcm");
-    println!("Result: {}", res);
+    // println!("Result: {}", res);
+    match res {
+        Ok(_) => {
+            println!("Decoding success!");
+        },
+        Err(e) => {
+            panic!("ERR: {}",e);
+        }
+    }
     // unsafe {
     //     let result = SKP_Silk_SDK_get_version();
     //     let c_str = std::ffi::CStr::from_ptr(result);
