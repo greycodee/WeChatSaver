@@ -2,6 +2,7 @@ use rusqlite::{Connection, Result};
 
 use crate::wechat::model;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Person {
     id: i32,

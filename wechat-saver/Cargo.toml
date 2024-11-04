@@ -9,3 +9,5 @@ tar = "0.4.42"
 md-5 = "0.10.6"
 rusqlite = {version = "0.32.1",features = ["sqlcipher"]}
 hex = "0.4.3"
+libc = "0.2.161"
+quick-xml = "0.37.0"
