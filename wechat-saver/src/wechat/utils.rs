@@ -8,31 +8,21 @@ pub fn gen_db_private_key(uin: &str) -> String {
     let mut hasher = Md5::new();
     hasher.update(private_key);
     let result = hasher.finalize();
-
     let result = hex::encode(result);
-    result
+    result[0..7].to_string()
 }
 
-pub fn get_all_system_dir_path(base_path: &str) -> Vec<String> {
-    let pre_path = format!("{}/apps/com.tencent.mm/r/MicroMsg", base_path);
-    let mut system_file_paths = Vec::new();
-    let uin_vec = get_all_uin(base_path);
-    for uin in uin_vec {
-        let system_file_name = get_system_file_name(&uin);
-        let system_file_path = format!("{}/{}", pre_path, system_file_name);
-        system_file_paths.push(system_file_path);
-    }
-    system_file_paths
-}
-
-pub fn get_system_file_name(uin: &str) -> String {
-    let mut private_key = String::from("mm");
-    private_key.push_str(uin);
-    let mut hasher = Md5::new();
-    hasher.update(private_key);
-    let result = hasher.finalize();
-    result.iter().map(|x| format!("{:02x}", x)).collect::<String>()
-}
+// pub fn get_all_system_dir_path(base_path: &str) -> Vec<String> {
+//     let pre_path = format!("{}/apps/com.tencent.mm/r/MicroMsg", base_path);
+//     let mut system_file_paths = Vec::new();
+//     let uin_vec = get_all_uin(base_path);
+//     for uin in uin_vec {
+//         let system_file_name = get_system_file_name(&uin);
+//         let system_file_path = format!("{}/{}", pre_path, system_file_name);
+//         system_file_paths.push(system_file_path);
+//     }
+//     system_file_paths
+// }
 
 pub fn get_all_uin(base_path: &str) -> Vec<String> {
     let mut uin_vec = Vec::new();
@@ -72,12 +62,6 @@ mod test{
         println!("key: {}",key);
     }
 
-    #[test]
-    fn test_get_system_file_name(){
-        let uin = "1727242265";
-        let key = crate::wechat::utils::get_system_file_name(uin);
-        println!("key: {}",key);
-    }
 
     #[test]
     fn test_get_all_uin(){
@@ -85,10 +69,10 @@ mod test{
         println!("{:?}",uins);
     }
 
-    #[test]
-    fn test_get_all_system_dir_path(){
-        let system_file_paths = crate::wechat::utils::get_all_system_dir_path(BASE_PATH);
-        println!("{:?}",system_file_paths);
-    }
+    // #[test]
+    // fn test_get_all_system_dir_path(){
+    //     let system_file_paths = crate::wechat::utils::get_all_system_dir_path(BASE_PATH);
+    //     println!("{:?}",system_file_paths);
+    // }
 
 }

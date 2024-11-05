@@ -20,6 +20,21 @@ fn open_wechat_db(db_path: &str,pri_key:&str) -> Result<Connection> {
     Ok(conn)
 }
 
+fn save_wechat_db_to_plan(db_path: &str,pri_key:&str) -> Result<String> {
+    let conn = Connection::open(db_path)?;
+    conn.execute_batch(&format!("PRAGMA key = '{}';", pri_key))?;
+    conn.execute_batch(&format!("PRAGMA cipher_use_hmac = {};", "off"))?;
+    conn.execute_batch(&format!("PRAGMA kdf_iter = {};", 4000))?;
+    conn.execute_batch(&format!("PRAGMA cipher_page_size = {};", 1024))?;
+    conn.execute_batch(&format!("PRAGMA cipher_hmac_algorithm = {};", "HMAC_SHA1"))?;
+    conn.execute_batch(&format!("PRAGMA cipher_kdf_algorithm = {};", "PBKDF2_HMAC_SHA1"))?;
+    conn.execute_batch("ATTACH DATABASE '/tmp/plan3.db' AS plan_db KEY '';")?;
+    conn.execute_batch("SELECT sqlcipher_export('plan_db');")?;
+    conn.execute_batch("DETACH DATABASE plan_db;")?;
+
+    Ok("".to_string())
+}
+
 
 mod test{
     use rusqlite::params;
@@ -61,5 +76,13 @@ mod test{
         for p in persons {
             println!("Found person {:?}", p);
         }
+    }
+
+    #[test]
+    fn test_save_wechat_db_to_plan(){
+        let db_path = "/Users/zheng/Downloads/20241024_091952/apps/com.tencent.mm/r/MicroMsg/2db66c115dd15b04d5b022bd1dba5f50/EnMicroMsg.db";
+        let pri_key = "c344e93";
+        let res = save_wechat_db_to_plan(db_path, pri_key);
+        println!("{:?}",res);
     }
 }
