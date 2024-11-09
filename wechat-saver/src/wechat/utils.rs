@@ -69,10 +69,5 @@ mod test{
         println!("{:?}",uins);
     }
 
-    // #[test]
-    // fn test_get_all_system_dir_path(){
-    //     let system_file_paths = crate::wechat::utils::get_all_system_dir_path(BASE_PATH);
-    //     println!("{:?}",system_file_paths);
-    // }
 
 }

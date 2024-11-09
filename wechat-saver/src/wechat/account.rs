@@ -1,18 +1,25 @@
-
+use crate::wechat::model::QuickAccountInfo;
 use super::file_path::get_system_file_name;
 use super::file_path::get_sd_card_dir_name;
 use super::utils::gen_db_private_key;
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct AccountInfo{
-    video_path:String,
-    voice_path:String,
-    image_path:String,
-    avatar_path:String,
-    download_path:String,
-    en_micro_msg_db_path:String,
-    wx_file_index_db_path:String,
-    db_private_key:String,
+    // pub account_name:String,
+    // pub account_uin:String,
+    // pub account_phone:String,
+    // pub account_avatar_path:String,
+
+    pub quick_account_info:QuickAccountInfo,
+
+    pub video_path:String,
+    pub voice_path:String,
+    pub image_path:String,
+    pub avatar_path:String,
+    pub download_path:String,
+    pub en_micro_msg_db_path:String,
+    pub wx_file_index_db_path:String,
+    pub db_private_key:String,
 }
 
 impl AccountInfo {
@@ -35,7 +42,15 @@ impl AccountInfo {
 
         let db_private_key = gen_db_private_key(uin);
 
+
+
         AccountInfo {
+            quick_account_info: QuickAccountInfo {
+                account_name: "".to_string(),
+                account_uin: "".to_string(),
+                account_phone: "".to_string(),
+                account_avatar_path: "".to_string(),
+            },
             video_path,
             voice_path,
             image_path,

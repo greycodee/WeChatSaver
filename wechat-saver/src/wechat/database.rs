@@ -1,6 +1,6 @@
-use rusqlite::{Connection, Result};
-
-use crate::wechat::model;
+use rusqlite::{params, Connection, Result};
+use crate::wechat::model::QuickAccountInfo;
+use super::model;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -19,6 +19,30 @@ fn open_wechat_db(db_path: &str,pri_key:&str) -> Result<Connection> {
     conn.execute_batch(&format!("PRAGMA cipher_kdf_algorithm = {};", "PBKDF2_HMAC_SHA1"))?;
     Ok(conn)
 }
+
+pub fn quick_get_account_info(db_path:&str, db_key: &str) -> Result<Option<QuickAccountInfo>> {
+    let conn = open_wechat_db(db_path, db_key)?;
+    let mut stmt = conn.prepare("SELECT id,value FROM userinfo where id in (4,6)")?;
+    let persons = stmt.query_map(params![], |row| {
+        Ok((row.get(0)?, row.get(1)?))
+    })?;
+    let mut account_info = QuickAccountInfo {
+        account_name: "".to_string(),
+        account_uin: "".to_string(),
+        account_phone: "".to_string(),
+        account_avatar_path: "".to_string(),
+    };
+    for p in persons {
+        let (id, value): (i32, String) = p?;
+        match id {
+            4 => account_info.account_name = value,
+            6 => account_info.account_phone = value,
+            _ => {}
+        }
+    }
+    Ok(Some(account_info))
+}
+
 
 fn save_wechat_db_to_plan(db_path: &str,pri_key:&str) -> Result<String> {
     let conn = Connection::open(db_path)?;
@@ -85,4 +109,14 @@ mod test{
         let res = save_wechat_db_to_plan(db_path, pri_key);
         println!("{:?}",res);
     }
+
+    #[test]
+    fn test_quick_get_account_info(){
+        let db_path = "/Users/zheng/Downloads/20241024_091952/apps/com.tencent.mm/r/MicroMsg/2db66c115dd15b04d5b022bd1dba5f50/EnMicroMsg.db";
+        let pri_key = "c344e93";
+        let res = quick_get_account_info(db_path, pri_key);
+        println!("{:?}",res);
+    }
 }
+
+

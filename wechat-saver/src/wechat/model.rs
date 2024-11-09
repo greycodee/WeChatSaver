@@ -24,3 +24,12 @@ pub struct Message {
     pub solitaire_fold_info: Option<Vec<u8>>, // BLOB as Vec<u8> in Rust
     pub history_id: Option<String>,
 }
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub struct QuickAccountInfo {
+    pub account_name:String,
+    pub account_uin:String,
+    pub account_phone:String,
+    pub account_avatar_path:String,
+}

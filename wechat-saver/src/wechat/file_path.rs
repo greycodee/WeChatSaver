@@ -1,18 +1,6 @@
 use std::io::Error;
 use md5::{Digest, Md5};
 
-// pub fn get_all_system_dir_path(base_path: &str) -> Vec<String> {
-//     let pre_path = format!("{}/apps/com.tencent.mm/r/MicroMsg", base_path);
-//     let mut system_file_paths = Vec::new();
-//     let uin_vec = get_all_uin(base_path);
-//     for uin in uin_vec {
-//         let system_file_name = get_system_file_name(&uin);
-//         let system_file_path = format!("{}/{}", pre_path, system_file_name);
-//         system_file_paths.push(system_file_path);
-//     }
-//     system_file_paths
-// }
-
 pub fn get_system_file_name(uin: &str) -> String {
     let mut private_key = String::from("mm");
     private_key.push_str(uin);
