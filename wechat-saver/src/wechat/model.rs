@@ -25,11 +25,3 @@ pub struct Message {
     pub history_id: Option<String>,
 }
 
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct QuickAccountInfo {
-    pub account_name:String,
-    pub account_uin:String,
-    pub account_phone:String,
-    pub account_avatar_path:String,
-}

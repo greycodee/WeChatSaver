@@ -5,24 +5,17 @@ use quick_xml::Reader;
 pub fn gen_db_private_key(uin: &str) -> String {
     let mut private_key = String::from("1234567890ABCDEF");
     private_key.push_str(uin);
-    let mut hasher = Md5::new();
-    hasher.update(private_key);
-    let result = hasher.finalize();
-    let result = hex::encode(result);
-    result[0..7].to_string()
+    let md5_private_key = md5_encode(&private_key);
+    md5_private_key[0..7].to_string()
 }
 
-// pub fn get_all_system_dir_path(base_path: &str) -> Vec<String> {
-//     let pre_path = format!("{}/apps/com.tencent.mm/r/MicroMsg", base_path);
-//     let mut system_file_paths = Vec::new();
-//     let uin_vec = get_all_uin(base_path);
-//     for uin in uin_vec {
-//         let system_file_name = get_system_file_name(&uin);
-//         let system_file_path = format!("{}/{}", pre_path, system_file_name);
-//         system_file_paths.push(system_file_path);
-//     }
-//     system_file_paths
-// }
+pub fn md5_encode(input: &str) -> String {
+    let mut hasher = Md5::new();
+    hasher.update(input);
+    let result = hasher.finalize();
+    let result = hex::encode(result);
+    result
+}
 
 pub fn get_all_uin(base_path: &str) -> Vec<String> {
     let mut uin_vec = Vec::new();
@@ -69,5 +62,11 @@ mod test{
         println!("{:?}",uins);
     }
 
+    #[test]
+    fn test_md5_encode(){
+        let input = "123123";
+        let res = crate::wechat::utils::md5_encode(input);
+        println!("{:?}",res);
+    }
 
 }

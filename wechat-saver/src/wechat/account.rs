@@ -1,17 +1,26 @@
-use crate::wechat::model::QuickAccountInfo;
+use rusqlite::params;
 use super::file_path::get_system_file_name;
 use super::file_path::get_sd_card_dir_name;
 use super::utils::gen_db_private_key;
+use super::utils::md5_encode;
+use super::database::open_wechat_db;
+
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub struct WXUserInfo {
+    pub wx_id:String,
+    pub wx_account_no:String,
+    pub account_name:String,
+    pub account_phone:String,
+    pub account_avatar_path:String,
+}
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct AccountInfo{
-    // pub account_name:String,
-    // pub account_uin:String,
-    // pub account_phone:String,
-    // pub account_avatar_path:String,
-
-    pub quick_account_info:QuickAccountInfo,
-
+    pub wx_user_info:WXUserInfo,
+    pub account_uin:String,
     pub video_path:String,
     pub voice_path:String,
     pub image_path:String,
@@ -41,16 +50,20 @@ impl AccountInfo {
         let download_path = format!("{}/{}", account_sd_card_dir_path, "Download");
 
         let db_private_key = gen_db_private_key(uin);
-
-
-
-        AccountInfo {
-            quick_account_info: QuickAccountInfo {
+        let wx_user_info = match Self::get_wx_user_info(&en_micro_msg_db_path, &db_private_key) {
+            Ok(Some(info)) => info,
+            _ => WXUserInfo {
                 account_name: "".to_string(),
-                account_uin: "".to_string(),
                 account_phone: "".to_string(),
                 account_avatar_path: "".to_string(),
-            },
+                wx_id: "".to_string(),
+                wx_account_no: "".to_string(),
+            }
+        };
+
+        AccountInfo {
+            account_uin: uin.to_string(),
+            wx_user_info,
             video_path,
             voice_path,
             image_path,
@@ -60,6 +73,44 @@ impl AccountInfo {
             wx_file_index_db_path,
             db_private_key,
         }
+    }
+
+    fn get_wx_user_info(db_path:&str, db_key: &str) -> rusqlite::Result<Option<WXUserInfo>> {
+        let conn = open_wechat_db(db_path, db_key)?;
+        let mut stmt = conn.prepare("SELECT id,value FROM userinfo where id in (2,4,6,42)")?;
+        let persons = stmt.query_map(params![], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })?;
+
+        let mut account_info = WXUserInfo {
+            account_name: "".to_string(),
+            account_phone: "".to_string(),
+            account_avatar_path: "".to_string(),
+            wx_id: "".to_string(),
+            wx_account_no: "".to_string(),
+        };
+        for p in persons {
+            let (id, value): (i32, String) = p?;
+            match id {
+                2 => account_info.wx_id = value,
+                4 => account_info.account_name = value,
+                6 => account_info.account_phone = value,
+                42 => account_info.wx_account_no = value,
+                _ => {}
+            }
+        }
+
+        account_info.account_avatar_path = Self::get_avatar_path(&account_info.wx_id);
+
+        Ok(Some(account_info))
+    }
+
+    fn get_avatar_path(wx_id: &str) -> String {
+        let md5_wx_id = md5_encode(wx_id);
+        let avatar_file_name = format!("user_{}.png", md5_wx_id);
+        let avatar_pre_dir_path = format!("{}/{}",&md5_wx_id[0..2],&md5_wx_id[2..4]);
+        let avatar_path = format!("{}/{}", avatar_pre_dir_path, avatar_file_name);
+        avatar_path
     }
 
 }
@@ -72,8 +123,15 @@ mod test {
 
     #[test]
     fn test_account_info() {
-        let uin = "-215593504";
+        let uin = "1727242265";
         let account_info = AccountInfo::new(BASE_PATH, uin);
         println!("{:?}", account_info);
+    }
+
+    #[test]
+    fn test_get_avatar_path() {
+        let wx_id = "wxid_123456";
+        let avatar_path = AccountInfo::get_avatar_path(wx_id);
+        println!("avatar_path: {}", avatar_path);
     }
 }
