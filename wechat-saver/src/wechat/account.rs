@@ -1,4 +1,5 @@
 use rusqlite::params;
+use serde::{Deserialize, Serialize};
 use super::file_path::get_system_file_name;
 use super::file_path::get_sd_card_dir_name;
 use super::utils::gen_db_private_key;
@@ -8,6 +9,7 @@ use super::database::open_wechat_db;
 
 #[allow(dead_code)]
 #[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct WXUserInfo {
     pub wx_id:String,
     pub wx_account_no:String,
@@ -18,8 +20,9 @@ pub struct WXUserInfo {
 
 #[allow(dead_code)]
 #[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct AccountInfo{
-    pub wx_user_info:WXUserInfo,
+    pub wx_user_info:Option<WXUserInfo>,
     pub account_uin:String,
     pub video_path:String,
     pub voice_path:String,
@@ -62,8 +65,8 @@ impl AccountInfo {
         };
 
         AccountInfo {
+            wx_user_info: Some(wx_user_info),
             account_uin: uin.to_string(),
-            wx_user_info,
             video_path,
             voice_path,
             image_path,

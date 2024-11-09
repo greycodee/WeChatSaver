@@ -1,9 +1,9 @@
-use wechat_saver_lib::voice_decode;
+use wechat_saver_lib::wechat::voice_decode;
 
-use wechat_saver_lib::wechat::utils;
+use wechat_saver_lib::wechat;
 
 fn main() {
-    let res = utils::get_all_uin("/Users/zheng/Downloads/20241024_091952");
+    let res = wechat::get_all_uin("/Users/zheng/Downloads/20241024_091952");
     println!("{:?}",res);
     // file_util::test();
     println!("Hello, world!");
