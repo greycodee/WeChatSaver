@@ -27,21 +27,6 @@ import {
       icon: MessageSquare,
     },
     {
-      title: "Calendar",
-      url: "#",
-      icon: Calendar,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: Search,
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
-    },
-    {
         title: "About",
         url: "/about",
         icon: Info,
@@ -61,7 +46,7 @@ import {
     };
 
     return (
-        <Sidebar collapsible="icon">
+      <Sidebar collapsible="icon">
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -69,10 +54,13 @@ import {
               <SidebarMenu>
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}
-                    className={`${selected === item.url ? 'bg-[#f2f2f2] dark:bg-[#1a1a1a] text-primary dark:text-primary' : ''}`}
-                    onClick={() => handleSelect(item.url)}
+                    // className={`${selected === item.url ? 'bg-[#f2f2f2] dark:bg-[#1a1a1a] text-primary dark:text-primary' : ''}`}
                   >
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton 
+                    onClick={() => handleSelect(item.url)} 
+                    isActive={selected === item.url}
+                    
+                    asChild>
                       <span>
                         <item.icon />
                         <span>{item.title}</span>
