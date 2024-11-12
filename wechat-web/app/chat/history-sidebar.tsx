@@ -4,63 +4,65 @@ import {
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-  } from "@/components/ui/sidebar"
-  import { Calendar, Home, Inbox, Search, Settings,Info,MessageSquare } from "lucide-react"
-  import { SidebarTrigger } from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React from "react";
 
-export default function ChatHistorySidebar() {
-    return (
-    <Sidebar collapsible="none">
-      <SidebarContent>
-          <SidebarGroup className="px-0">
-            <SidebarGroupLabel>Chat History</SidebarGroupLabel>
-            <SidebarGroupContent className="px-0">
-            <a
-                  href="#"
-                  className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                >
-                  <div className="flex w-full items-center gap-2">
-                    <span>asd</span>{" "}
-                    <span className="ml-auto text-xs">asd</span>
-                  </div>
-                  <span className="font-medium">asd</span>
-                  <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
-                    asd
-                  </span>
-                </a>
-                  
-                <a
-                  href="#"
-                  className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                >
-                  <div className="flex w-full items-center gap-2">
-                    <span>asd</span>{" "}
-                    <span className="ml-auto text-xs">asd</span>
-                  </div>
-                  <span className="font-medium">asd</span>
-                  <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
-                    asd
-                  </span>
-                </a>
-                <a
-                  href="#"
-                  className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                >
-                  <div className="flex w-full items-center gap-2">
-                    <span>asd</span>{" "}
-                    <span className="ml-auto text-xs">asd</span>
-                  </div>
-                  <span className="font-medium">asd</span>
-                  <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
-                    asd
-                  </span>
-                </a>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    );
-}
+const ChatHistorySidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
+  ({ className, ...props }, ref) => {
+
+    const contacts = [
+      { name: "John Doe", message: "Hey, how are you?", time: "2:30 PM" },
+      { name: "Jane Smith", message: "Let's catch up later.", time: "1:15 PM" },
+      { name: "Alice Johnson", message: "Meeting at 3 PM.", time: "12:45 PM" },
+  ];
+
+    return(
+      <Sidebar collapsible="none"
+          className={className}
+          ref={ref}
+          {...props}
+        >
+            <SidebarContent>
+                <SidebarGroup className="px-0">
+                    <SidebarGroupLabel>Chat History</SidebarGroupLabel>
+                    <SidebarGroupContent className="px-0">
+                        {contacts.map((contact, index) => (
+                            <a
+                                key={index}
+                                href="#"
+                                className="flex items-center gap-4 p-4 mb-4 bg-white rounded-lg shadow-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            >
+                                <Avatar className="w-10 h-10">
+                                    <AvatarImage src={`https://i.pravatar.cc/150?img=${index + 1}`} alt={contact.name} />
+                                    <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col w-full">
+                                    <div className="flex justify-between w-full">
+                                        <span className="font-medium">{contact.name}</span>
+                                        <span className="text-xs text-gray-500">{contact.time}</span>
+                                    </div>
+                                    <span className="line-clamp-2 text-xs text-gray-600">{contact.message}</span>
+                                </div>
+                            </a>
+                        ))}
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            </SidebarContent>
+        </Sidebar>
+    )
+  }
+)
+export { ChatHistorySidebar }
+
+// export default function ChatHistorySidebar({ className }) {
+    // const contacts = [
+    //     { name: "John Doe", message: "Hey, how are you?", time: "2:30 PM" },
+    //     { name: "Jane Smith", message: "Let's catch up later.", time: "1:15 PM" },
+    //     { name: "Alice Johnson", message: "Meeting at 3 PM.", time: "12:45 PM" },
+    // ];
+
+//     return (
+        
+//     );
+// }

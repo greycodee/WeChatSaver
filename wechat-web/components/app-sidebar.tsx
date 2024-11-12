@@ -46,6 +46,7 @@ import {
     };
 
     return (
+        
       <Sidebar collapsible="icon">
         <SidebarContent>
           <SidebarGroup>
@@ -73,7 +74,6 @@ import {
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
-  
     )
   }
   
