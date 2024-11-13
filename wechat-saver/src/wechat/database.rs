@@ -1,11 +1,44 @@
-use rusqlite::{params, Connection, Result};
+use std::path::Path;
+use rusqlite::{params, Connection,Result};
+use crate::wechat::account::WXUserInfo;
 use super::model;
+// use std::io::{Error, Result};
+
 
 #[allow(dead_code)]
 #[derive(Debug)]
 struct Person {
     id: i32,
     content: String,
+}
+
+fn init_db(wx_user_info: &WXUserInfo,dest_path: &Path) -> Result<Connection> {
+    let db_path = dest_path.join(&wx_user_info.wx_id);
+    let db_path = db_path.join("db");
+    if !db_path.exists() {
+        std::fs::create_dir_all(&db_path).expect("create db dir failed");
+    }
+    let db_path = db_path.join("wechat.db");
+    let conn = Connection::open(db_path)?;
+    // create database
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS message (
+        msg_id INTEGER PRIMARY KEY,
+        msg_svr_id INTEGER,
+        msg_type INTEGER,
+        status INTEGER,
+        is_send INTEGER,
+        is_show_timer INTEGER,
+        create_time INTEGER,
+        talker TEXT,
+        content TEXT,
+        img_path TEXT,
+        reserved TEXT,
+        lvbuffer BLOB
+    )",
+    )?;
+    Ok(conn)
+
 }
 
 pub fn open_wechat_db(db_path: &str,pri_key:&str) -> Result<Connection> {
@@ -80,9 +113,23 @@ mod test{
 
     #[test]
     fn test_save_wechat_db_to_plan(){
-        let db_path = "/Users/zheng/Downloads/20241024_091952/apps/com.tencent.mm/r/MicroMsg/2db66c115dd15b04d5b022bd1dba5f50/EnMicroMsg.db";
-        let pri_key = "c344e93";
+        let db_path = "/Users/zheng/Downloads/20241024_091952/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/EnMicroMsg.db";
+        let pri_key = "626d0bc";
         let res = save_wechat_db_to_plan(db_path, pri_key);
+        println!("{:?}",res);
+    }
+
+    #[test]
+    fn test_init_db(){
+        let wx_user_info = WXUserInfo {
+            wx_id: "wxid_1sdas111".to_string(),
+            wx_account_no: "".to_string(),
+            account_name: "".to_string(),
+            account_phone: "".to_string(),
+            account_avatar_path: "".to_string(),
+        };
+        let dest_path = Path::new("/tmp/testdb");
+        let res = init_db(&wx_user_info, dest_path);
         println!("{:?}",res);
     }
 

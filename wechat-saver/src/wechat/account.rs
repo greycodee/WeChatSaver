@@ -22,7 +22,7 @@ pub struct WXUserInfo {
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
 pub struct AccountInfo{
-    pub wx_user_info:Option<WXUserInfo>,
+    pub wx_user_info: WXUserInfo,
     pub account_uin:String,
     pub video_path:String,
     pub voice_path:String,
@@ -65,7 +65,7 @@ impl AccountInfo {
         };
 
         AccountInfo {
-            wx_user_info: Some(wx_user_info),
+            wx_user_info,
             account_uin: uin.to_string(),
             video_path,
             voice_path,
@@ -115,6 +115,8 @@ impl AccountInfo {
         let avatar_path = format!("{}/{}", avatar_pre_dir_path, avatar_file_name);
         avatar_path
     }
+
+
 
 }
 
