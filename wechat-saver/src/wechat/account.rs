@@ -43,13 +43,11 @@ impl AccountInfo {
         let account_dir_name = get_system_file_name(uin);
         let account_file_path = base_path.join("apps/com.tencent.mm/r/MicroMsg")
             .join(account_dir_name);
-        println!("account_file_path: {:?}", account_file_path);
 
         let image_path = account_file_path.join("image2");
         let avatar_path = account_file_path.join("avatar");
         let en_micro_msg_db_path = account_file_path.join("EnMicroMsg.db");
         let wx_file_index_db_path = account_file_path.join("WxFileIndex.db");
-        println!("en_micro_msg_db_path type: {:?}", en_micro_msg_db_path);
         let account_sd_card_dir_name = get_sd_card_dir_name(base_path, uin)?;
         let account_sd_card_dir_path = base_path.join("Android/data/com.tencent.mm/MicroMsg")
             .join(account_sd_card_dir_name);

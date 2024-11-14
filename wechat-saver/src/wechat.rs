@@ -9,6 +9,7 @@ mod model;
 mod utils;
 pub mod voice_decode;
 pub mod ffmpeg;
+mod wx_file_index;
 
 use account::AccountInfo;
 
