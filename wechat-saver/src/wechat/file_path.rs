@@ -1,4 +1,5 @@
 use std::io::Error;
+use std::path::Path;
 use md5::{Digest, Md5};
 
 pub fn get_system_file_name(uin: &str) -> String {
@@ -13,21 +14,22 @@ pub fn get_system_file_name(uin: &str) -> String {
         .collect::<String>()
 }
 
-pub fn get_sd_card_dir_name(base_path: &str, uin: &str) -> Result<String,Error> {
+pub fn get_sd_card_dir_name(base_path: &Path, uin: &str) -> std::io::Result<String> {
     let account_dir_name = get_system_file_name(uin);
-    let account_mapping_file_path = format!(
-        "{}/apps/com.tencent.mm/r/MicroMsg/{}/account.mapping",
-        base_path, account_dir_name
-    );
+    let account_mapping_file_path = base_path.join("apps/com.tencent.mm/r/MicroMsg")
+        .join(account_dir_name).join("account.mapping");
+
     let account_mapping_file = std::fs::read_to_string(account_mapping_file_path)?;
+
     Ok(account_mapping_file)
 }
 
 
 
 mod test {
+    use std::path::Path;
 
-    const BASE_PATH: &str = "/Users/zheng/Downloads/20241024_091952";
+    // const BASE_PATH: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
     // use super::*;
 
     #[test]
@@ -40,7 +42,8 @@ mod test {
     #[test]
     fn test_get_sd_card_dir_name() {
         let uin = "1727242265";
-        let key = crate::wechat::file_path::get_sd_card_dir_name(BASE_PATH, uin);
+        let base_path = Path::new("/sdcard/Android/data/com.tencent.mm");
+        let key = crate::wechat::file_path::get_sd_card_dir_name(base_path, uin);
         println!("key: {:?}", key);
     }
 }

@@ -41,7 +41,7 @@ fn init_db(wx_user_info: &WXUserInfo,dest_path: &Path) -> Result<Connection> {
 
 }
 
-pub fn open_wechat_db(db_path: &str,pri_key:&str) -> Result<Connection> {
+pub fn open_wechat_db(db_path: &Path,pri_key:&str) -> Result<Connection> {
     let conn = Connection::open(db_path)?;
     conn.execute_batch(&format!("PRAGMA key = '{}';", pri_key))?;
     conn.execute_batch(&format!("PRAGMA cipher_use_hmac = {};", "off"))?;
@@ -74,7 +74,7 @@ mod test{
     use super::*;
     #[test]
     fn test_open_wechat_db(){
-        let db_path = "/tmp/EnMicroMsg.db";
+        let db_path = Path::new("/tmp/EnMicroMsg.db");
         let pri_key = "626d0bc";
         let db_conn = open_wechat_db(db_path, pri_key).expect("TODO: panic message");
         let mut stmt = db_conn.prepare("SELECT * FROM message limit 10").unwrap();
@@ -126,7 +126,7 @@ mod test{
             wx_account_no: "".to_string(),
             account_name: "".to_string(),
             account_phone: "".to_string(),
-            account_avatar_path: "".to_string(),
+            account_avatar_path: None,
         };
         let dest_path = Path::new("/tmp/testdb");
         let res = init_db(&wx_user_info, dest_path);

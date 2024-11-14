@@ -103,44 +103,45 @@ impl<'a> FileArch<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::wechat::account::{AccountInfo, WXUserInfo};
+    use crate::wechat::account::{AccountInfo};
 
-    const BASE_PATH: &str = "/Users/zheng/Downloads/20241024_091952";
 
-    fn crate_account_info() -> AccountInfo {
-        AccountInfo {
-            account_uin: "1727242265".to_string(),
-            wx_user_info: WXUserInfo {
-                wx_id: "wxid_1sdas111".to_string(),
-                wx_account_no: "".to_string(),
-                account_name: "".to_string(),
-                account_phone: "".to_string(),
-                account_avatar_path: "".to_string(),
-            },
-            video_path: "video_path".to_string(),
-            voice_path: "voice_path".to_string(),
-            image_path: "image_path".to_string(),
-            avatar_path: "avatar_path".to_string(),
-            download_path: "download_path".to_string(),
-            en_micro_msg_db_path: "en_micro_msg_db_path".to_string(),
-            wx_file_index_db_path: "wx_file_index_db_path".to_string(),
-            db_private_key: "db_private_key".to_string(),
-        }
-    }
+    // fn crate_account_info() -> AccountInfo {
+    //     AccountInfo {
+    //         account_uin: "1727242265".to_string(),
+    //         wx_user_info: WXUserInfo {
+    //             wx_id: "wxid_1sdas111".to_string(),
+    //             wx_account_no: "".to_string(),
+    //             account_name: "".to_string(),
+    //             account_phone: "".to_string(),
+    //             account_avatar_path: "".to_string(),
+    //         },
+    //         video_path: "video_path".to_string(),
+    //         voice_path: "voice_path".to_string(),
+    //         image_path: "image_path".to_string(),
+    //         avatar_path: "avatar_path".to_string(),
+    //         download_path: "download_path".to_string(),
+    //         en_micro_msg_db_path: "en_micro_msg_db_path".to_string(),
+    //         wx_file_index_db_path: "wx_file_index_db_path".to_string(),
+    //         db_private_key: "db_private_key".to_string(),
+    //     }
+    // }
 
-    #[test]
-    fn test_file_arch() {
-        let account_info = crate_account_info();
-        let dest_path = Path::new("/tmp/test");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        println!("dest_path: {:?}", file_arch.dest_path);
-        println!("dest_path:{}",dest_path.display());
-    }
+    // #[test]
+    // fn test_file_arch() {
+    //     let account_info = crate_account_info();
+    //     let dest_path = Path::new("/tmp/test");
+    //     let file_arch = FileArch::new(&account_info, dest_path);
+    //     println!("dest_path: {:?}", file_arch.dest_path);
+    //     println!("dest_path:{}",dest_path.display());
+    // }
 
     #[test]
     fn test_arch_voice() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path = Path::new("/Users/zheng/Downloads/20241024_091952");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);
@@ -150,7 +151,8 @@ mod test {
     #[test]
     fn test_arch_db() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);
@@ -160,7 +162,9 @@ mod test {
     #[test]
     fn test_arch_image() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);
@@ -170,7 +174,9 @@ mod test {
     #[test]
     fn test_arch_avatar() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);
@@ -180,7 +186,9 @@ mod test {
     #[test]
     fn test_arch_video() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);
@@ -190,7 +198,9 @@ mod test {
     #[test]
     fn test_arch_download() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);
@@ -200,7 +210,9 @@ mod test {
     #[test]
     fn test_arch_all() {
         let uin = "1727242265";
-        let account_info = AccountInfo::new(BASE_PATH, uin);
+        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/wechat");
         let file_arch = FileArch::new(&account_info, dest_path);

@@ -18,8 +18,6 @@ pub fn md5_encode(input: &str) -> String {
 mod test{
     use crate::wechat::utils::gen_db_private_key;
 
-    const BASE_PATH: &str = "/Users/zheng/Downloads/20241024_091952";
-    // use super::*;
     #[test]
     fn test_gen_db_private_key(){
         let uin = "1727242265";
