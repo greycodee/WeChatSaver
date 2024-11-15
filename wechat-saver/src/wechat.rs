@@ -62,7 +62,7 @@ pub fn process_backup_file(
     Ok(temp_dir)
 }
 
-fn get_all_account(base_path: &Path) -> std::io::Result<Vec<AccountInfo>> {
+pub fn get_all_account(base_path: &Path) -> std::io::Result<Vec<AccountInfo>> {
     let uin_vec = get_all_uin(base_path);
     let mut account_vec = Vec::new();
     for uin in uin_vec {
@@ -103,14 +103,14 @@ mod test {
 
     #[test]
     fn test_get_all_uin() {
-        let base_path = Path::new("/sdcard/Android/data/com.tencent.mm");
+        let base_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
         let res = get_all_uin(base_path);
         println!("{:?}", res);
     }
 
     #[test]
     fn test_get_all_account() {
-        let base_path = Path::new("/sdcard/Android/data/com.tencent.mm");
+        let base_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
 
         let res = get_all_account(base_path).unwrap();
         // json serialization

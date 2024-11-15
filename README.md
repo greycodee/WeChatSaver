@@ -15,3 +15,10 @@ rusqlite = {version = "0.32.1",features = ["sqlcipher"]}
 ## Process Flow
 
 ![](./save.svg)
+
+## module
+
+- **wechat-saver-lib**: 只进行本地io相关操作，不涉及网络相关操作
+- **wechat-api**: 提供http api接口，提供文件上传的接口。处理逻辑使用`wechat-saver-lib`模块
+- **wechat-web**: web页面
+  

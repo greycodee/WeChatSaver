@@ -1,4 +1,5 @@
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use std::path::Path;
 use wechat_saver_lib::wechat::voice_decode;
 use wechat_saver_lib::wechat::get_all_account;
 
@@ -9,7 +10,8 @@ async fn hello() -> impl Responder {
 
 #[get("/all_account")]
 async fn all_account() -> impl Responder {
-    let all_account = get_all_account("/Users/zheng/Downloads/20241024_091952");
+    let base_path = Path::new("/Users/zheng/Downloads/20241024_091952");
+    let all_account = get_all_account(base_path).unwrap();
     // all_account
     HttpResponse::Ok().json(all_account)
 }
