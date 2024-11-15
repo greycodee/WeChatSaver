@@ -3,8 +3,8 @@ use wechat_saver_lib::wechat::voice_decode;
 use wechat_saver_lib::wechat;
 
 fn main() {
-    let res = wechat::get_all_uin("/Users/zheng/Downloads/20241024_091952");
-    println!("{:?}",res);
+    // let res = wechat::get_all_uin("/Users/zheng/Downloads/20241024_091952");
+    // println!("{:?}",res);
     // file_util::test();
     println!("Hello, world!");
     // let decode_version = voice_decode::get_version();
