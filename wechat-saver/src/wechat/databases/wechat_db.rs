@@ -1,7 +1,7 @@
 use crate::wechat::account::WXUserInfo;
 use crate::wechat::file_path;
-use crate::wechat::model::{Message, RContact};
-use rusqlite::{params, Connection, Result};
+use crate::wechat::model::{Message, RContact, UserInfo, WxFileIndex3};
+use rusqlite::{params, Connection, OptionalExtension, Result};
 use std::path::Path;
 
 #[derive(Debug)]
@@ -95,6 +95,38 @@ impl WechatDB {
         Ok(contacts)
     }
 
+    pub fn select_user_info_with_limit(&self,start:u32,end:u32) -> Result<Vec<UserInfo>> {
+        let mut stmt = self.en_micro_msg_conn.prepare("SELECT * FROM userinfo LIMIT ?,?")?;
+        let persons = stmt.query_map((start, end), |row| {
+            Ok(UserInfo {
+                id: row.get(0)?,
+                w_type: row.get(1)?,
+                w_value: row.get(2)?,
+            })
+        })?.collect::<std::result::Result<Vec<_>, _>>()?;
+        Ok(persons)
+    }
+
+    pub fn select_wx_file_index_by_msg_id(&self, msg_id: i64) -> Result<Option<WxFileIndex3>> {
+        let mut stmt = self.wx_file_index_conn.prepare("SELECT * FROM WxFileIndex3 WHERE msgId = ?")?;
+        let wx_file_index = stmt.query_row(params![msg_id], |row| {
+            Ok(WxFileIndex3 {
+                msg_id: row.get(0)?,
+                username: row.get(1)?,
+                msg_type: row.get(2)?,
+                msg_sub_type: row.get(3)?,
+                path: row.get(4)?,
+                size: row.get(5)?,
+                msg_time: row.get(6)?,
+                hash: row.get(7).ok(),
+                disk_space: row.get(8)?,
+                link_uuid: row.get(9).ok(),
+            })
+        }).optional()?;
+        Ok(wx_file_index)
+    }
+
+
     pub fn get_wx_user_info(&self) -> Result<WXUserInfo> {
         let mut stmt = self
             .en_micro_msg_conn
@@ -172,6 +204,26 @@ mod test {
             .expect("TODO: panic message");
         for message in messages {
             println!("{:?}", message);
+        }
+    }
+
+    #[test]
+    fn test_select_wx_file_index_by_msg_id(){
+        let db_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/EnMicroMsg.db");
+        let wx_file_index_db_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/WxFileIndex.db");
+        let db_private_key = "626d0bc";
+        let wechat_db = WechatDB::new(db_path, wx_file_index_db_path, db_private_key)
+            .expect("TODO: panic message");
+
+        if let Ok(f) = wechat_db.select_wx_file_index_by_msg_id(0){
+            match f {
+                Some(ff) => {
+                    println!("wx: {:?}",ff);
+                },
+                None => {
+                    println!("None");
+                }
+            }
         }
     }
 }

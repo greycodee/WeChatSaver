@@ -2,7 +2,7 @@ use super::super::model::Message;
 use rusqlite::Result;
 use rusqlite::{params, Connection};
 use std::path::Path;
-use crate::wechat::model::RContact;
+use crate::wechat::model::{RContact, UserInfo};
 
 #[derive(Debug)]
 pub struct WeChatSaverDB {
@@ -83,6 +83,19 @@ impl WeChatSaverDB {
                 contact.username_flag,
                 contact.contact_extra,
                 contact.create_time,
+            ],
+        )
+    }
+
+    pub fn save_user_info(&self, user_info: &UserInfo) -> Result<usize>{
+        self.conn.execute(
+            "INSERT INTO userinfo (
+                id, type, value
+            ) VALUES (?1, ?2, ?3)",
+            rusqlite::params![
+                user_info.id,
+                user_info.w_type,
+                user_info.w_value,
             ],
         )
     }

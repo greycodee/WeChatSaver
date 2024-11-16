@@ -132,6 +132,31 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
+    fn arch_db_user_info_table(&self) -> Result<()> {
+        let mut offset = 0;
+        let limit = 500;
+        loop {
+            let user_info_list = self.account_info.db_conn.select_user_info_with_limit(offset, limit);
+            match user_info_list {
+                Ok(list) => {
+                    if list.is_empty() {
+                        break;
+                    }
+                    for user_info in list {
+                        if let Err(e) = self.wechat_saver_db.save_user_info(&user_info) {
+                            println!("save user info error: {:?}", e);
+                        }
+                    }
+                }
+                Err(e) => {
+                    break;
+                }
+            }
+            offset += limit;
+        }
+        Ok(())
+    }
+
     fn arch_image(&self) -> Result<()> {
         let src_path = Path::new(&self.account_info.image_path);
         let dst_path = &self.dest_path.join("image2");
@@ -212,5 +237,18 @@ mod test {
         let dest_path = Path::new("/tmp/com.tencent.mm");
         let file_arch = FileArch::new(dest_path, &account_info).unwrap();
         file_arch.arch_db_r_contact_table().unwrap();
+    }
+
+    #[test]
+    fn test_arch_db_user_info_table(){
+        let uin = "1727242265";
+        let base_path: &Path =
+            Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
+
+        let dest_path = Path::new("/tmp/com.tencent.mm");
+        let file_arch = FileArch::new(dest_path, &account_info).unwrap();
+        file_arch.arch_db_user_info_table().unwrap();
     }
 }

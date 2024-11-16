@@ -27,9 +27,9 @@ pub struct Message {
 
 #[derive(Debug)]
 pub struct UserInfo {
-    id: i64,       // INTEGER, primary key
-    r#type: i64,   // INT (type is a keyword, use r#type)
-    value: String, // TEXT
+    pub id: i64,       // INTEGER, primary key
+    pub w_type: i64,   // INT (type is a keyword, use w_type )
+    pub w_value: String, // TEXT
 }
 
 #[derive(Debug)]
@@ -65,14 +65,14 @@ pub struct RContact {
 
 #[derive(Debug)]
 pub struct WxFileIndex3 {
-    msg_id: i64,                // LONG
-    username: String,           // TEXT
-    msg_type: i64,              // INTEGER
-    msg_sub_type: i64,          // INTEGER
-    path: String,               // TEXT
-    size: i64,                  // LONG
-    msg_time: i64,              // LONG
-    hash: Option<Vec<u8>>,      // BLOB
-    disk_space: i64,            // LONG
-    link_uuid: Option<Vec<u8>>, // BLOB
+    pub msg_id: i64,                // LONG
+    pub username: String,           // TEXT
+    pub msg_type: i64,              // INTEGER
+    pub msg_sub_type: i64,          // INTEGER
+    pub path: String,               // TEXT
+    pub size: i64,                  // LONG
+    pub msg_time: i64,              // LONG
+    pub hash: Option<Vec<u8>>,      // BLOB
+    pub disk_space: i64,            // LONG
+    pub link_uuid: Option<Vec<u8>>, // BLOB
 }
