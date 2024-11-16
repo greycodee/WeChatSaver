@@ -1,27 +1,24 @@
-use std::path::Path;
-use rusqlite::{params, Connection};
-use rusqlite::Result;
 use super::super::model::Message;
+use rusqlite::Result;
+use rusqlite::{params, Connection};
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct WeChatSaverDB {
-    conn: Connection
+    conn: Connection,
 }
 
 impl WeChatSaverDB {
-
     /**
         @param base_path: userspace path
         @param wx_id: 微信id
     */
     pub fn new(base_path: &Path) -> Result<Self> {
         let conn = init_save_db(base_path)?;
-        Ok(WeChatSaverDB {
-            conn
-        })
+        Ok(WeChatSaverDB { conn })
     }
 
-    pub fn save_message(&self,message: &Message) -> Result<usize> {
+    pub fn save_message(&self, message: &Message) -> Result<usize> {
         self.conn.execute(
                 "INSERT INTO message (
                 msgSvrId, type, status, isSend, isShowTimer, createTime, talker, content, imgPath, reserved, lvbuffer, transContent, transBrandWording, talkerId, bizClientMsgId, bizChatId, bizChatUserId, msgSeq, flag, solitaireFoldInfo, historyId
@@ -50,7 +47,6 @@ impl WeChatSaverDB {
                 message.history_id,
             ],
             )
-
     }
 
     /**
@@ -60,26 +56,29 @@ impl WeChatSaverDB {
     @param create_time: i64 消息创建时间
     @return: 返回是否可以备份 true: 可以 false: 不可以
     */
-    pub fn addition_flag(&self,msg_svr_id:Option<i64>, talker: &str, create_time: i64) -> Result<bool>{
-
-            match msg_svr_id {
-                None => {
-                    let mut stmt = self.conn.prepare("SELECT count(*) FROM message WHERE msgSvrId IS NULL AND talker = ? AND createTime = ?")?;
-                    let count: i64 = stmt.query_row(params![talker, create_time], |row| row.get(0))?;
-                    Ok(count == 0)
-                }
-                Some(id) => {
-                    let mut stmt = self.conn.prepare("SELECT count(*) FROM message WHERE msgSvrId = ? AND talker = ? AND createTime = ?")?;
-                    let count: i64 = stmt.query_row(params![id, talker, create_time], |row| row.get(0))?;
-                    Ok(count == 0)
-                }
+    pub fn addition_flag(
+        &self,
+        msg_svr_id: Option<i64>,
+        talker: &str,
+        create_time: i64,
+    ) -> Result<bool> {
+        match msg_svr_id {
+            None => {
+                let mut stmt = self.conn.prepare("SELECT count(*) FROM message WHERE msgSvrId IS NULL AND talker = ? AND createTime = ?")?;
+                let count: i64 = stmt.query_row(params![talker, create_time], |row| row.get(0))?;
+                Ok(count == 0)
             }
+            Some(id) => {
+                let mut stmt = self.conn.prepare("SELECT count(*) FROM message WHERE msgSvrId = ? AND talker = ? AND createTime = ?")?;
+                let count: i64 =
+                    stmt.query_row(params![id, talker, create_time], |row| row.get(0))?;
+                Ok(count == 0)
+            }
+        }
     }
 }
 
-
 fn init_save_db(dest_path: &Path) -> Result<Connection> {
-
     let db_path = dest_path.join("wechat.db");
     let conn = Connection::open(db_path)?;
     // create database
@@ -151,7 +150,7 @@ create index IF NOT EXISTS messagemessageTalkerFlagMsgSeqIndex
 create index IF NOT EXISTS messagemessageTalkerMsgSeqIndex
     on message (talker, msgSeq);
 
-"
+",
     )?;
 
     conn.execute_batch(
@@ -163,7 +162,7 @@ create table IF NOT EXISTS userinfo
     type  INT,
     value TEXT
 );
-"
+",
     )?;
 
     conn.execute_batch(
@@ -245,21 +244,4 @@ create index IF NOT EXISTS username_type_index
 ",
     )?;
     Ok(conn)
-}
-
-
-
-mod test {
-    use super::*;
-
-    // #[test]
-    // fn test_addition_flag(){
-    //     let en_micro_msg_db_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/EnMicroMsg.db");
-    //     let wx_file_index_db_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/WxFileIndex.db");
-    //     let db_private_key = "626d0bc";
-    //     let mut wechat_db = WechatDB::new(en_micro_msg_db_path, wx_file_index_db_path, db_private_key).expect("TODO: panic message");
-    //
-    //     let flag = wechat_db.addition_flag(Some(77380342827986082), "gh_aaf6483adb11", 1669089338000).expect("TODO: panic message");
-    //     println!("{:?}",flag);
-    // }
 }

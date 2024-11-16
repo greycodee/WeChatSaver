@@ -1,7 +1,7 @@
+use super::databases::wechat_db::WechatDB;
 use super::file_path::get_sd_card_dir_name;
 use super::file_path::get_system_file_name;
 use super::utils::gen_db_private_key;
-use super::databases::wechat_db::WechatDB;
 
 use std::io::Error;
 use std::path::{Path, PathBuf};
@@ -34,7 +34,6 @@ pub struct AccountInfo {
 }
 
 impl AccountInfo {
-
     /**
         @param base_path: temp dir path
     */
@@ -59,7 +58,11 @@ impl AccountInfo {
 
         let db_private_key = gen_db_private_key(uin);
         let mut db_conn;
-        match WechatDB::new(&en_micro_msg_db_path,&wx_file_index_db_path,&db_private_key){
+        match WechatDB::new(
+            &en_micro_msg_db_path,
+            &wx_file_index_db_path,
+            &db_private_key,
+        ) {
             Ok(w) => {
                 db_conn = w;
             }
@@ -69,22 +72,20 @@ impl AccountInfo {
         }
 
         match db_conn.get_wx_user_info() {
-            Ok(wx_user_info) => {
-                Ok(AccountInfo {
-                    wx_user_info,
-                    account_uin: uin.to_string(),
-                    video_path,
-                    voice_path,
-                    image_path,
-                    avatar_path,
-                    download_path,
-                    openapi_path: Default::default(),
-                    en_micro_msg_db_path,
-                    wx_file_index_db_path,
-                    db_private_key,
-                    db_conn,
-                })
-            },
+            Ok(wx_user_info) => Ok(AccountInfo {
+                wx_user_info,
+                account_uin: uin.to_string(),
+                video_path,
+                voice_path,
+                image_path,
+                avatar_path,
+                download_path,
+                openapi_path: Default::default(),
+                en_micro_msg_db_path,
+                wx_file_index_db_path,
+                db_private_key,
+                db_conn,
+            }),
             Err(err) => Err(Error::new(std::io::ErrorKind::Other, err)),
         }
     }

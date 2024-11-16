@@ -34,46 +34,45 @@ struct UserInfo {
 
 #[derive(Debug)]
 struct RContact {
-    username: String,          // TEXT default ''
-    alias: String,             // TEXT default ''
-    con_remark: String,        // TEXT default ''
-    domain_list: String,       // TEXT default ''
-    nickname: String,          // TEXT default ''
-    py_initial: String,        // TEXT default ''
-    quan_pin: String,          // TEXT default ''
-    show_head: i64,            // INTEGER default '0'
-    r#type: i64,               // INTEGER default '0' (type is a keyword, use r#type)
-    ui_type: i64,              // LONG default '0'
-    weibo_flag: i64,           // INTEGER default '0'
-    weibo_nickname: String,    // TEXT default ''
-    con_remark_py_full: String,// TEXT default ''
-    con_remark_py_short: String, // TEXT default ''
-    lvbuff: Option<Vec<u8>>,   // BLOB
-    verify_flag: i64,          // INTEGER default '0'
-    encrypt_username: String,  // TEXT default ''
-    chatroom_flag: Option<i64>,// INTEGER
-    delete_flag: i64,          // INTEGER default '0'
-    contact_label_ids: String, // TEXT default ''
-    desc_wording_id: String,   // TEXT default ''
-    open_im_appid: Option<String>, // TEXT
+    username: String,                // TEXT default ''
+    alias: String,                   // TEXT default ''
+    con_remark: String,              // TEXT default ''
+    domain_list: String,             // TEXT default ''
+    nickname: String,                // TEXT default ''
+    py_initial: String,              // TEXT default ''
+    quan_pin: String,                // TEXT default ''
+    show_head: i64,                  // INTEGER default '0'
+    r#type: i64,                     // INTEGER default '0' (type is a keyword, use r#type)
+    ui_type: i64,                    // LONG default '0'
+    weibo_flag: i64,                 // INTEGER default '0'
+    weibo_nickname: String,          // TEXT default ''
+    con_remark_py_full: String,      // TEXT default ''
+    con_remark_py_short: String,     // TEXT default ''
+    lvbuff: Option<Vec<u8>>,         // BLOB
+    verify_flag: i64,                // INTEGER default '0'
+    encrypt_username: String,        // TEXT default ''
+    chatroom_flag: Option<i64>,      // INTEGER
+    delete_flag: i64,                // INTEGER default '0'
+    contact_label_ids: String,       // TEXT default ''
+    desc_wording_id: String,         // TEXT default ''
+    open_im_appid: Option<String>,   // TEXT
     source_ext_info: Option<String>, // TEXT
-    ticket: String,            // TEXT default ''
-    username_flag: i64,        // LONG default '0'
-    contact_extra: Option<Vec<u8>>, // BLOB
-    create_time: i64,          // LONG default '0'
+    ticket: String,                  // TEXT default ''
+    username_flag: i64,              // LONG default '0'
+    contact_extra: Option<Vec<u8>>,  // BLOB
+    create_time: i64,                // LONG default '0'
 }
-
 
 #[derive(Debug)]
 struct WxFileIndex3 {
-    msg_id: i64,        // LONG
-    username: String,   // TEXT
-    msg_type: i64,      // INTEGER
-    msg_sub_type: i64,  // INTEGER
-    path: String,       // TEXT
-    size: i64,          // LONG
-    msg_time: i64,      // LONG
-    hash: Option<Vec<u8>>, // BLOB
-    disk_space: i64,    // LONG
+    msg_id: i64,                // LONG
+    username: String,           // TEXT
+    msg_type: i64,              // INTEGER
+    msg_sub_type: i64,          // INTEGER
+    path: String,               // TEXT
+    size: i64,                  // LONG
+    msg_time: i64,              // LONG
+    hash: Option<Vec<u8>>,      // BLOB
+    disk_space: i64,            // LONG
     link_uuid: Option<Vec<u8>>, // BLOB
 }

@@ -1,8 +1,8 @@
 use crate::wechat::account::AccountInfo;
+use crate::wechat::databases::wechat_saver_db::WeChatSaverDB;
 use std::fs;
 use std::io::{Error, Result};
 use std::path::{Path, PathBuf};
-use crate::wechat::databases::wechat_saver_db::WeChatSaverDB;
 
 #[derive(Debug)]
 struct FileArch<'a> {
@@ -15,19 +15,22 @@ impl<'a> FileArch<'a> {
     /**
         @param base_path: workspace
     */
-    fn new(base_path: &Path,account_info: &'a AccountInfo) -> std::io::Result<Self> {
+    fn new(base_path: &Path, account_info: &'a AccountInfo) -> std::io::Result<Self> {
         let user_space_path = base_path.join(&account_info.wx_user_info.wx_id);
         if !user_space_path.exists() {
             fs::create_dir_all(&user_space_path)?;
         }
-        if let Ok(wechat_saver_db) = WeChatSaverDB::new(&user_space_path){
+        if let Ok(wechat_saver_db) = WeChatSaverDB::new(&user_space_path) {
             Ok(FileArch {
                 account_info,
                 dest_path: user_space_path,
                 wechat_saver_db,
             })
-        }else {
-            Err(Error::new(std::io::ErrorKind::Other, "create wechat saver db error"))
+        } else {
+            Err(Error::new(
+                std::io::ErrorKind::Other,
+                "create wechat saver db error",
+            ))
         }
     }
 
@@ -67,25 +70,32 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn arch_db_message_table(&self) -> Result<()>{
+    fn arch_db_message_table(&self) -> Result<()> {
         // 每次查询 500 条数据
         let mut offset = 0;
         let limit = 500;
         loop {
-            let message_list = self.account_info.db_conn.select_message_with_limit(offset, limit);
+            let message_list = self
+                .account_info
+                .db_conn
+                .select_message_with_limit(offset, limit);
             match message_list {
                 Ok(list) => {
                     if list.is_empty() {
                         break;
                     }
                     for message in list {
-                        if let Ok(true) = self.wechat_saver_db.addition_flag(message.msg_svr_id, &message.talker, message.create_time) {
+                        if let Ok(true) = self.wechat_saver_db.addition_flag(
+                            message.msg_svr_id,
+                            &message.talker,
+                            message.create_time,
+                        ) {
                             if let Err(e) = self.wechat_saver_db.save_message(&message) {
                                 println!("save message error: {:?}", e);
                             }
                         }
                     }
-                },
+                }
                 Err(e) => {
                     break;
                 }
@@ -152,14 +162,15 @@ mod test {
     use crate::wechat::account::AccountInfo;
 
     #[test]
-    fn test_arch_db_message_table(){
+    fn test_arch_db_message_table() {
         let uin = "1727242265";
-        let base_path: &Path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
+        let base_path: &Path =
+            Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
 
         let account_info = AccountInfo::new(base_path, uin).unwrap();
 
         let dest_path = Path::new("/tmp/com.tencent.mm");
-        let file_arch = FileArch::new(dest_path,&account_info).unwrap();
+        let file_arch = FileArch::new(dest_path, &account_info).unwrap();
         file_arch.arch_db_message_table().unwrap();
     }
 }
