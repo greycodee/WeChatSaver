@@ -1,6 +1,6 @@
 use crate::wechat::account::WXUserInfo;
 use crate::wechat::file_path;
-use crate::wechat::model::Message;
+use crate::wechat::model::{Message, RContact};
 use rusqlite::{params, Connection, Result};
 use std::path::Path;
 
@@ -57,6 +57,42 @@ impl WechatDB {
             })?
             .collect::<Result<Vec<_>, _>>()?;
         Ok(messages)
+    }
+
+    pub fn select_r_contact_with_limit(&self,start:u32,end:u32) -> Result<Vec<RContact>>{
+        let mut stmt = self.en_micro_msg_conn.prepare("SELECT * FROM rcontact LIMIT ?,?")?;
+        let contacts = stmt.query_map((start, end), |row| {
+            Ok(RContact {
+                username: row.get(0)?,
+                alias: row.get(1)?,
+                con_remark: row.get(2)?,
+                domain_list: row.get(3)?,
+                nickname: row.get(4)?,
+                py_initial: row.get(5)?,
+                quan_pin: row.get(6)?,
+                show_head: row.get(7)?,
+                r#type: row.get(8)?,
+                ui_type: row.get(9)?,
+                weibo_flag: row.get(10)?,
+                weibo_nickname: row.get(11)?,
+                con_remark_py_full: row.get(12)?,
+                con_remark_py_short: row.get(13)?,
+                lvbuff: row.get(14)?,
+                verify_flag: row.get(15)?,
+                encrypt_username: row.get(16)?,
+                chatroom_flag: row.get(17)?,
+                delete_flag: row.get(18)?,
+                contact_label_ids: row.get(19)?,
+                desc_wording_id: row.get(20)?,
+                open_im_appid: row.get(21)?,
+                source_ext_info: row.get(22)?,
+                ticket: row.get(23)?,
+                username_flag: row.get(24)?,
+                contact_extra: row.get(25)?,
+                create_time: row.get(26)?,
+            })
+        })?.collect::<std::result::Result<Vec<_>, _>>()?;
+        Ok(contacts)
     }
 
     pub fn get_wx_user_info(&self) -> Result<WXUserInfo> {

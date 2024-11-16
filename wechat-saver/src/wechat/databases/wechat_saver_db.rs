@@ -2,6 +2,7 @@ use super::super::model::Message;
 use rusqlite::Result;
 use rusqlite::{params, Connection};
 use std::path::Path;
+use crate::wechat::model::RContact;
 
 #[derive(Debug)]
 pub struct WeChatSaverDB {
@@ -49,6 +50,43 @@ impl WeChatSaverDB {
             )
     }
 
+    pub fn save_r_contact(&self, contact: &RContact) -> Result<usize>{
+        self.conn.execute(
+            "INSERT INTO rcontact (
+                username, alias, conRemark, domainList, nickname, pyInitial, quanPin, showHead, type, uiType, weiboFlag, weiboNickname, conRemarkPYFull, conRemarkPYShort, lvbuff, verifyFlag, encryptUsername, chatroomFlag, deleteFlag, contactLabelIds, descWordingId, openImAppid, sourceExtInfo, ticket, usernameFlag, contactExtra, createTime
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27)",
+            rusqlite::params![
+                contact.username,
+                contact.alias,
+                contact.con_remark,
+                contact.domain_list,
+                contact.nickname,
+                contact.py_initial,
+                contact.quan_pin,
+                contact.show_head,
+                contact.r#type,
+                contact.ui_type,
+                contact.weibo_flag,
+                contact.weibo_nickname,
+                contact.con_remark_py_full,
+                contact.con_remark_py_short,
+                contact.lvbuff,
+                contact.verify_flag,
+                contact.encrypt_username,
+                contact.chatroom_flag,
+                contact.delete_flag,
+                contact.contact_label_ids,
+                contact.desc_wording_id,
+                contact.open_im_appid,
+                contact.source_ext_info,
+                contact.ticket,
+                contact.username_flag,
+                contact.contact_extra,
+                contact.create_time,
+            ],
+        )
+    }
+
     /**
     判断消息是否可以备份
     @param msg_svr_id: Option<i64> 为None时表示msgSvrId为空
@@ -56,7 +94,7 @@ impl WeChatSaverDB {
     @param create_time: i64 消息创建时间
     @return: 返回是否可以备份 true: 可以 false: 不可以
     */
-    pub fn addition_flag(
+    pub fn addition_message_flag(
         &self,
         msg_svr_id: Option<i64>,
         talker: &str,

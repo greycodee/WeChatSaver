@@ -85,7 +85,7 @@ impl<'a> FileArch<'a> {
                         break;
                     }
                     for message in list {
-                        if let Ok(true) = self.wechat_saver_db.addition_flag(
+                        if let Ok(true) = self.wechat_saver_db.addition_message_flag(
                             message.msg_svr_id,
                             &message.talker,
                             message.create_time,
@@ -93,6 +93,33 @@ impl<'a> FileArch<'a> {
                             if let Err(e) = self.wechat_saver_db.save_message(&message) {
                                 println!("save message error: {:?}", e);
                             }
+                        }
+                    }
+                }
+                Err(e) => {
+                    break;
+                }
+            }
+            offset += limit;
+        }
+        Ok(())
+    }
+
+    fn arch_db_r_contact_table(&self) -> Result<()> {
+        // TODO 考虑返回冲突的联系人，选择是否更新
+        // TODO 标记删除的联系人
+        let mut offset = 0;
+        let limit = 500;
+        loop {
+            let contact_list = self.account_info.db_conn.select_r_contact_with_limit(offset, limit);
+            match contact_list {
+                Ok(list) => {
+                    if list.is_empty() {
+                        break;
+                    }
+                    for contact in list {
+                        if let Err(e) = self.wechat_saver_db.save_r_contact(&contact) {
+                            println!("save r contact error: {:?}", e);
                         }
                     }
                 }
@@ -172,5 +199,18 @@ mod test {
         let dest_path = Path::new("/tmp/com.tencent.mm");
         let file_arch = FileArch::new(dest_path, &account_info).unwrap();
         file_arch.arch_db_message_table().unwrap();
+    }
+
+    #[test]
+    fn test_arch_db_r_contact_table(){
+        let uin = "1727242265";
+        let base_path: &Path =
+            Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
+
+        let account_info = AccountInfo::new(base_path, uin).unwrap();
+
+        let dest_path = Path::new("/tmp/com.tencent.mm");
+        let file_arch = FileArch::new(dest_path, &account_info).unwrap();
+        file_arch.arch_db_r_contact_table().unwrap();
     }
 }
