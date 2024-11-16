@@ -2,7 +2,7 @@ use super::super::model::Message;
 use rusqlite::Result;
 use rusqlite::{params, Connection};
 use std::path::Path;
-use crate::wechat::model::{RContact, UserInfo};
+use crate::wechat::model::{RContact, UserInfo, WxFileIndex3};
 
 #[derive(Debug)]
 pub struct WeChatSaverDB {
@@ -17,6 +17,10 @@ impl WeChatSaverDB {
     pub fn new(base_path: &Path) -> Result<Self> {
         let conn = init_save_db(base_path)?;
         Ok(WeChatSaverDB { conn })
+    }
+
+    pub fn get_last_insert_row_id(&self) -> i64 {
+        self.conn.last_insert_rowid()
     }
 
     pub fn save_message(&self, message: &Message) -> Result<usize> {
@@ -96,6 +100,26 @@ impl WeChatSaverDB {
                 user_info.id,
                 user_info.w_type,
                 user_info.w_value,
+            ],
+        )
+    }
+
+    pub fn save_wx_file_index(&self, wx_file_index: &WxFileIndex3) -> Result<usize>{
+        self.conn.execute(
+            "INSERT INTO WxFileIndex3 (
+                msgId, username, msgType, msgSubType, path, size, msgtime, hash, diskSpace, linkUUID
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            rusqlite::params![
+                wx_file_index.msg_id,
+                wx_file_index.username,
+                wx_file_index.msg_type,
+                wx_file_index.msg_sub_type,
+                wx_file_index.path,
+                wx_file_index.size,
+                wx_file_index.msg_time,
+                wx_file_index.hash,
+                wx_file_index.disk_space,
+                wx_file_index.link_uuid,
             ],
         )
     }
@@ -295,4 +319,25 @@ create index IF NOT EXISTS username_type_index
 ",
     )?;
     Ok(conn)
+}
+
+
+#[cfg(test)]
+mod test{
+    use super::*;
+
+    #[test]
+    fn test_wechat_saver_db(){
+        let base_path = Path::new("/tmp/com.tencent.mm/wxid_jafjkmbud9l912");
+        let wechat_saver_db = WeChatSaverDB::new(base_path).unwrap();
+
+        wechat_saver_db.save_user_info(&UserInfo{
+            id: 99929,
+            w_type: 1,
+            w_value: "test".to_string(),
+        }).unwrap();
+
+        let last_row_id = wechat_saver_db.get_last_insert_row_id();
+        println!("last_row_id: {}", last_row_id);
+    }
 }

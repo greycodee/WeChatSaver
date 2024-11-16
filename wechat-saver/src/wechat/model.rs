@@ -63,7 +63,7 @@ pub struct RContact {
     pub create_time: i64,                // LONG default '0'
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct WxFileIndex3 {
     pub msg_id: i64,                // LONG
     pub username: String,           // TEXT

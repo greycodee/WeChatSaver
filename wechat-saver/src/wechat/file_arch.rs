@@ -90,8 +90,12 @@ impl<'a> FileArch<'a> {
                             &message.talker,
                             message.create_time,
                         ) {
-                            if let Err(e) = self.wechat_saver_db.save_message(&message) {
-                                println!("save message error: {:?}", e);
+                            if let Ok(count) = self.wechat_saver_db.save_message(&message) {
+                                // TODO 如果是多线程，注意获取可能不准确，后续上多线程的话，msg_id 进行手动维护
+                                let latest_rows_id = self.wechat_saver_db.get_last_insert_row_id();
+                                // TODO process WXFileIndex3
+                                // TODO get msg_id of new insert message
+                                self.arch_db_wx_file_index_by_msg_id(message.msg_id,latest_rows_id)?;
                             }
                         }
                     }
@@ -153,6 +157,20 @@ impl<'a> FileArch<'a> {
                 }
             }
             offset += limit;
+        }
+        Ok(())
+    }
+
+    fn arch_db_wx_file_index_by_msg_id(&self,old_msg_id:i64,new_msg_id:i64) -> Result<()> {
+        // TODO rewrite path
+        if let Ok(old_wx_file_index_opt) = self.account_info.db_conn.select_wx_file_index_by_msg_id(old_msg_id){
+            if let Some(old_wx_file_index) = old_wx_file_index_opt {
+                let mut new_wx_file_index = old_wx_file_index.clone();
+                new_wx_file_index.msg_id = new_msg_id;
+                if let Err(e) = self.wechat_saver_db.save_wx_file_index(&new_wx_file_index){
+                    println!("save wx file index error: {:?}", e);
+                }
+            }
         }
         Ok(())
     }
