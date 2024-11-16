@@ -16,6 +16,10 @@ rusqlite = {version = "0.32.1",features = ["sqlcipher"]}
 
 ![](./save.svg)
 
+![](./db.svg)
+
+![](./db-conn.svg)
+
 ## module
 
 - **wechat-saver-lib**: 只进行本地io相关操作，不涉及网络相关操作

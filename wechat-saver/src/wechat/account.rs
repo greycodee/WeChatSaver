@@ -1,15 +1,13 @@
-use super::database::open_wechat_db;
 use super::file_path::get_sd_card_dir_name;
 use super::file_path::get_system_file_name;
 use super::utils::gen_db_private_key;
-use super::utils::md5_encode;
-use rusqlite::params;
-use serde::{Deserialize, Serialize};
+use super::databases::wechat_db::WechatDB;
+
 use std::io::Error;
 use std::path::{Path, PathBuf};
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct WXUserInfo {
     pub wx_id: String,
     pub wx_account_no: String,
@@ -19,7 +17,7 @@ pub struct WXUserInfo {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct AccountInfo {
     pub wx_user_info: WXUserInfo,
     pub account_uin: String,
@@ -32,9 +30,14 @@ pub struct AccountInfo {
     pub en_micro_msg_db_path: PathBuf,
     pub wx_file_index_db_path: PathBuf,
     pub db_private_key: String,
+    pub db_conn: WechatDB,
 }
 
 impl AccountInfo {
+
+    /**
+        @param base_path: temp dir path
+    */
     pub fn new(base_path: &Path, uin: &str) -> std::io::Result<Self> {
         let account_dir_name = get_system_file_name(uin);
         let account_file_path = base_path
@@ -55,58 +58,35 @@ impl AccountInfo {
         let download_path = account_sd_card_dir_path.join("Download");
 
         let db_private_key = gen_db_private_key(uin);
-        match Self::get_wx_user_info(&en_micro_msg_db_path, &db_private_key) {
-            Ok(wx_user_info) => Ok(AccountInfo {
-                wx_user_info,
-                account_uin: uin.to_string(),
-                video_path,
-                voice_path,
-                image_path,
-                avatar_path,
-                download_path,
-                openapi_path: Default::default(),
-                en_micro_msg_db_path,
-                wx_file_index_db_path,
-                db_private_key,
-            }),
-            Err(err) => Err(Error::new(std::io::ErrorKind::Other, err)),
-        }
-    }
-
-    fn get_wx_user_info(db_path: &Path, db_key: &str) -> rusqlite::Result<WXUserInfo> {
-        let conn = open_wechat_db(db_path, db_key)?;
-        let mut stmt = conn.prepare("SELECT id,value FROM userinfo where id in (2,4,6,42)")?;
-        let persons = stmt.query_map(params![], |row| Ok((row.get(0)?, row.get(1)?)))?;
-
-        let mut account_info = WXUserInfo {
-            account_name: "".to_string(),
-            account_phone: "".to_string(),
-            account_avatar_path: None,
-            wx_id: "".to_string(),
-            wx_account_no: "".to_string(),
-        };
-        for p in persons {
-            let (id, value): (i32, String) = p?;
-            match id {
-                2 => account_info.wx_id = value,
-                4 => account_info.account_name = value,
-                6 => account_info.account_phone = value,
-                42 => account_info.wx_account_no = value,
-                _ => {}
+        let mut db_conn;
+        match WechatDB::new(&en_micro_msg_db_path,&wx_file_index_db_path,&db_private_key){
+            Ok(w) => {
+                db_conn = w;
+            }
+            Err(err) => {
+                return Err(Error::new(std::io::ErrorKind::Other, err));
             }
         }
 
-        account_info.account_avatar_path = Some(Self::get_avatar_path(&account_info.wx_id));
-
-        Ok(account_info)
-    }
-
-    fn get_avatar_path(wx_id: &str) -> PathBuf {
-        let md5_wx_id = md5_encode(wx_id);
-        let avatar_file_name = format!("user_{}.png", md5_wx_id);
-        let avatar_pre_dir_path = format!("{}/{}", &md5_wx_id[0..2], &md5_wx_id[2..4]);
-        let avatar_path = PathBuf::from(avatar_pre_dir_path).join(avatar_file_name);
-        avatar_path
+        match db_conn.get_wx_user_info() {
+            Ok(wx_user_info) => {
+                Ok(AccountInfo {
+                    wx_user_info,
+                    account_uin: uin.to_string(),
+                    video_path,
+                    voice_path,
+                    image_path,
+                    avatar_path,
+                    download_path,
+                    openapi_path: Default::default(),
+                    en_micro_msg_db_path,
+                    wx_file_index_db_path,
+                    db_private_key,
+                    db_conn,
+                })
+            },
+            Err(err) => Err(Error::new(std::io::ErrorKind::Other, err)),
+        }
     }
 }
 
@@ -114,20 +94,11 @@ impl AccountInfo {
 mod test {
     use super::*;
 
-    // const BASE_PATH: &Path = Path::
-
     #[test]
     fn test_account_info() {
         let uin = "1727242265";
         let base_path = Path::new("/Users/zheng/Downloads/20241024_091952");
         let account_info = AccountInfo::new(&base_path, uin);
         println!("{:?}", account_info);
-    }
-
-    #[test]
-    fn test_get_avatar_path() {
-        let wx_id = "wxid_123456";
-        let avatar_path = AccountInfo::get_avatar_path(wx_id);
-        println!("avatar_path: {:?}", avatar_path);
     }
 }

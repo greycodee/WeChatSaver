@@ -3,7 +3,7 @@ use quick_xml::Reader;
 use std::path::{Path, PathBuf};
 mod account;
 pub mod android_backup;
-mod database;
+mod databases;
 pub mod ffmpeg;
 mod file_arch;
 mod file_path;
@@ -109,27 +109,16 @@ mod test {
     }
 
     #[test]
-    fn test_get_all_account() {
-        let base_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
-
-        let res = get_all_account(base_path).unwrap();
-        // json serialization
-        let json = serde_json::to_string(&res).unwrap();
-
-        println!("{}", json);
-    }
-
-    #[test]
     fn test_run() {
         let work_space = Path::new("/tmp/com.tencent.mm");
         let android_backup_file = Path::new("/Users/zheng/Downloads/20241024_091952/wechat.bak");
         let android_sdcard = Path::new("/Users/zheng/Downloads/20241024_091952/backup_wechat.zip");
-        match process_backup_file(work_space, android_backup_file, android_sdcard) {
+        match process_backup_file(work_space, android_backup_file, android_sdcard){
             Ok(temp_dir) => {
-                println!("temp_dir: {:?}", temp_dir);
-            }
+                println!("temp_dir: {:?}",temp_dir);
+            },
             Err(e) => {
-                panic!("{}", e);
+                panic!("{}",e);
             }
         }
     }

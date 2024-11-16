@@ -1,29 +1,46 @@
 use crate::wechat::account::AccountInfo;
 use std::fs;
-use std::io::Result;
+use std::io::{Error, Result};
 use std::path::{Path, PathBuf};
+use crate::wechat::databases::wechat_saver_db::WeChatSaverDB;
+
 #[derive(Debug)]
 struct FileArch<'a> {
     account_info: &'a AccountInfo,
     dest_path: PathBuf,
+    wechat_saver_db: WeChatSaverDB,
 }
 
 impl<'a> FileArch<'a> {
-    fn new(account_info: &'a AccountInfo, dest_path: &Path) -> Self {
-        let user_space_path = dest_path.join(&account_info.wx_user_info.wx_id);
-        FileArch {
-            account_info,
-            dest_path: user_space_path,
+    /**
+        @param base_path: workspace
+    */
+    fn new(base_path: &Path,account_info: &'a AccountInfo) -> std::io::Result<Self> {
+        let user_space_path = base_path.join(&account_info.wx_user_info.wx_id);
+        if !user_space_path.exists() {
+            fs::create_dir_all(&user_space_path)?;
+        }
+        if let Ok(wechat_saver_db) = WeChatSaverDB::new(&user_space_path){
+            Ok(FileArch {
+                account_info,
+                dest_path: user_space_path,
+                wechat_saver_db,
+            })
+        }else {
+            Err(Error::new(std::io::ErrorKind::Other, "create wechat saver db error"))
         }
     }
 
-    fn arch_all(&self) -> Result<()> {
+    fn arch_all(&mut self) -> Result<()> {
         self.arch_voice()?;
         self.arch_db()?;
         self.arch_image()?;
         self.arch_avatar()?;
         self.arch_video()?;
         self.arch_download()?;
+
+        // TODO 删除临时文件夹
+        // TODO 删除lock文件
         Ok(())
     }
 
@@ -34,7 +51,9 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn arch_db(&self) -> Result<()> {
+    fn arch_db(&mut self) -> Result<()> {
+        // self.account_info.db_conn.init_save_db()
+        // TODO 考虑增量备份的情况
         let db_path = &self.dest_path.join("db");
         if !db_path.exists() {
             fs::create_dir_all(db_path)?;
@@ -45,7 +64,34 @@ impl<'a> FileArch<'a> {
         let wx_file_index_db_path = Path::new(&self.account_info.wx_file_index_db_path);
         let wx_file_index_db_dst_path = db_path.join(wx_file_index_db_path.file_name().unwrap());
         fs::copy(wx_file_index_db_path, wx_file_index_db_dst_path)?;
+        Ok(())
+    }
 
+    fn arch_db_message_table(&self) -> Result<()>{
+        // 每次查询 500 条数据
+        let mut offset = 0;
+        let limit = 500;
+        loop {
+            let message_list = self.account_info.db_conn.select_message_with_limit(offset, limit);
+            match message_list {
+                Ok(list) => {
+                    if list.is_empty() {
+                        break;
+                    }
+                    for message in list {
+                        if let Ok(true) = self.wechat_saver_db.addition_flag(message.msg_svr_id, &message.talker, message.create_time) {
+                            if let Err(e) = self.wechat_saver_db.save_message(&message) {
+                                println!("save message error: {:?}", e);
+                            }
+                        }
+                    }
+                },
+                Err(e) => {
+                    break;
+                }
+            }
+            offset += limit;
+        }
         Ok(())
     }
 
@@ -105,116 +151,15 @@ mod test {
     use super::*;
     use crate::wechat::account::AccountInfo;
 
-    // fn crate_account_info() -> AccountInfo {
-    //     AccountInfo {
-    //         account_uin: "1727242265".to_string(),
-    //         wx_user_info: WXUserInfo {
-    //             wx_id: "wxid_1sdas111".to_string(),
-    //             wx_account_no: "".to_string(),
-    //             account_name: "".to_string(),
-    //             account_phone: "".to_string(),
-    //             account_avatar_path: "".to_string(),
-    //         },
-    //         video_path: "video_path".to_string(),
-    //         voice_path: "voice_path".to_string(),
-    //         image_path: "image_path".to_string(),
-    //         avatar_path: "avatar_path".to_string(),
-    //         download_path: "download_path".to_string(),
-    //         en_micro_msg_db_path: "en_micro_msg_db_path".to_string(),
-    //         wx_file_index_db_path: "wx_file_index_db_path".to_string(),
-    //         db_private_key: "db_private_key".to_string(),
-    //     }
-    // }
-
-    // #[test]
-    // fn test_file_arch() {
-    //     let account_info = crate_account_info();
-    //     let dest_path = Path::new("/tmp/test");
-    //     let file_arch = FileArch::new(&account_info, dest_path);
-    //     println!("dest_path: {:?}", file_arch.dest_path);
-    //     println!("dest_path:{}",dest_path.display());
-    // }
-
     #[test]
-    fn test_arch_voice() {
+    fn test_arch_db_message_table(){
         let uin = "1727242265";
-        let base_path = Path::new("/Users/zheng/Downloads/20241024_091952");
+        let base_path: &Path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
 
         let account_info = AccountInfo::new(base_path, uin).unwrap();
 
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_voice().unwrap();
-    }
-
-    #[test]
-    fn test_arch_db() {
-        let uin = "1727242265";
-        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-        let account_info = AccountInfo::new(base_path, uin).unwrap();
-
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_db().unwrap();
-    }
-
-    #[test]
-    fn test_arch_image() {
-        let uin = "1727242265";
-        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-
-        let account_info = AccountInfo::new(base_path, uin).unwrap();
-
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_image().unwrap();
-    }
-
-    #[test]
-    fn test_arch_avatar() {
-        let uin = "1727242265";
-        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-
-        let account_info = AccountInfo::new(base_path, uin).unwrap();
-
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_avatar().unwrap();
-    }
-
-    #[test]
-    fn test_arch_video() {
-        let uin = "1727242265";
-        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-
-        let account_info = AccountInfo::new(base_path, uin).unwrap();
-
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_video().unwrap();
-    }
-
-    #[test]
-    fn test_arch_download() {
-        let uin = "1727242265";
-        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-
-        let account_info = AccountInfo::new(base_path, uin).unwrap();
-
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_download().unwrap();
-    }
-
-    #[test]
-    fn test_arch_all() {
-        let uin = "1727242265";
-        let base_path: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-
-        let account_info = AccountInfo::new(base_path, uin).unwrap();
-
-        let dest_path = Path::new("/tmp/wechat");
-        let file_arch = FileArch::new(&account_info, dest_path);
-        file_arch.arch_all().unwrap();
+        let dest_path = Path::new("/tmp/com.tencent.mm");
+        let file_arch = FileArch::new(dest_path,&account_info).unwrap();
+        file_arch.arch_db_message_table().unwrap();
     }
 }
