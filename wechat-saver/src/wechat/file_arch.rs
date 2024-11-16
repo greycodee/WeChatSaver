@@ -1,7 +1,7 @@
-use std::fs;
-use std::path::{Path, PathBuf};
 use crate::wechat::account::AccountInfo;
+use std::fs;
 use std::io::Result;
+use std::path::{Path, PathBuf};
 #[derive(Debug)]
 struct FileArch<'a> {
     account_info: &'a AccountInfo,
@@ -13,7 +13,7 @@ impl<'a> FileArch<'a> {
         let user_space_path = dest_path.join(&account_info.wx_user_info.wx_id);
         FileArch {
             account_info,
-            dest_path:user_space_path
+            dest_path: user_space_path,
         }
     }
 
@@ -27,14 +27,14 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn arch_voice(&self)  -> Result<()>  {
+    fn arch_voice(&self) -> Result<()> {
         let src_path = Path::new(&self.account_info.voice_path);
         let dst_path = &self.dest_path.join("voice2");
         self.copy_dir_all(src_path, dst_path)?;
         Ok(())
     }
 
-    fn arch_db(&self)  -> Result<()> {
+    fn arch_db(&self) -> Result<()> {
         let db_path = &self.dest_path.join("db");
         if !db_path.exists() {
             fs::create_dir_all(db_path)?;
@@ -49,7 +49,7 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn arch_image(&self) -> Result<()>  {
+    fn arch_image(&self) -> Result<()> {
         let src_path = Path::new(&self.account_info.image_path);
         let dst_path = &self.dest_path.join("image2");
         self.copy_dir_all(src_path, dst_path)?;
@@ -63,7 +63,7 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn arch_video(&self)  -> Result<()>{
+    fn arch_video(&self) -> Result<()> {
         let src_path = Path::new(&self.account_info.video_path);
         let dst_path = &self.dest_path.join("video");
         self.copy_dir_all(src_path, dst_path)?;
@@ -77,7 +77,7 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn copy_dir_all(&self,src: &Path, dst: &Path) -> Result<()> {
+    fn copy_dir_all(&self, src: &Path, dst: &Path) -> Result<()> {
         if !dst.exists() {
             fs::create_dir_all(dst)?;
         }
@@ -103,8 +103,7 @@ impl<'a> FileArch<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::wechat::account::{AccountInfo};
-
+    use crate::wechat::account::AccountInfo;
 
     // fn crate_account_info() -> AccountInfo {
     //     AccountInfo {

@@ -52,7 +52,6 @@ struct WxFileIndex {
 }
 
 impl WxFileIndex {
-
     // TODO 转移到新db
     // 解析文件类型
 

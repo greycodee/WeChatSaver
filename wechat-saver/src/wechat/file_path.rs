@@ -1,6 +1,6 @@
+use md5::{Digest, Md5};
 use std::io::Error;
 use std::path::Path;
-use md5::{Digest, Md5};
 
 pub fn get_system_file_name(uin: &str) -> String {
     let mut private_key = String::from("mm");
@@ -16,15 +16,15 @@ pub fn get_system_file_name(uin: &str) -> String {
 
 pub fn get_sd_card_dir_name(base_path: &Path, uin: &str) -> std::io::Result<String> {
     let account_dir_name = get_system_file_name(uin);
-    let account_mapping_file_path = base_path.join("apps/com.tencent.mm/r/MicroMsg")
-        .join(account_dir_name).join("account.mapping");
+    let account_mapping_file_path = base_path
+        .join("apps/com.tencent.mm/r/MicroMsg")
+        .join(account_dir_name)
+        .join("account.mapping");
 
     let account_mapping_file = std::fs::read_to_string(account_mapping_file_path)?;
 
     Ok(account_mapping_file)
 }
-
-
 
 mod test {
     use std::path::Path;

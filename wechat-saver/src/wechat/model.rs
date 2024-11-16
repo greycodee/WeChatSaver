@@ -24,4 +24,3 @@ pub struct Message {
     pub solitaire_fold_info: Option<Vec<u8>>, // BLOB as Vec<u8> in Rust
     pub history_id: Option<String>,
 }
-

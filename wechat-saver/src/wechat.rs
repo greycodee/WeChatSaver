@@ -124,12 +124,12 @@ mod test {
         let work_space = Path::new("/tmp/com.tencent.mm");
         let android_backup_file = Path::new("/Users/zheng/Downloads/20241024_091952/wechat.bak");
         let android_sdcard = Path::new("/Users/zheng/Downloads/20241024_091952/backup_wechat.zip");
-        match process_backup_file(work_space, android_backup_file, android_sdcard){
+        match process_backup_file(work_space, android_backup_file, android_sdcard) {
             Ok(temp_dir) => {
-                println!("temp_dir: {:?}",temp_dir);
-            },
+                println!("temp_dir: {:?}", temp_dir);
+            }
             Err(e) => {
-                panic!("{}",e);
+                panic!("{}", e);
             }
         }
     }

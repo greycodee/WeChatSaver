@@ -13,7 +13,7 @@ const FRAME_LENGTH_MS: usize = 20;
 const MAX_API_FS_KHZ: usize = 48;
 const MAX_LBRR_DELAY: usize = 2;
 
-pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
+pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(), io::Error> {
     let mut tottime: u64 = 0;
     let mut _tot_packets: i32 = 0;
     let mut payload = vec![0u8; MAX_BYTES_PER_FRAME * MAX_INPUT_FRAMES * (MAX_LBRR_DELAY + 1)];
@@ -36,42 +36,55 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
     if header_buf[0] != 0x02 {
         bit_in_file.read_exact(&mut header_buf[..8])?;
         if &header_buf[..8] != b"!SILK_V3" {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: Wrong Header"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Error: Wrong Header",
+            ));
         }
     } else {
         bit_in_file.read_exact(&mut header_buf[..9])?;
         if &header_buf[..9] != b"#!SILK_V3" {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "Error: Wrong Header"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Error: Wrong Header",
+            ));
         }
     }
 
     let mut dec_size_bytes: i32 = 0;
     unsafe {
         if SKP_Silk_SDK_Get_Decoder_Size(&mut dec_size_bytes) != 0 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "SKP_Silk_SDK_Get_Decoder_Size failed"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "SKP_Silk_SDK_Get_Decoder_Size failed",
+            ));
         }
     }
 
     let ps_dec = unsafe { libc::malloc(dec_size_bytes as usize) };
     if ps_dec.is_null() {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "Failed to allocate decoder"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "Failed to allocate decoder",
+        ));
     }
 
     unsafe {
         if SKP_Silk_SDK_InitDecoder(ps_dec) != 0 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "SKP_Silk_SDK_InitDecoder failed"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "SKP_Silk_SDK_InitDecoder failed",
+            ));
         }
     }
 
     let mut payload_end = 0;
     for i in 0..MAX_LBRR_DELAY {
         let mut n_bytes: i16 = 0;
-        bit_in_file
-            .read_exact(unsafe {
-                std::slice::from_raw_parts_mut(&mut n_bytes as *mut _ as *mut u8, 2)
-            })?;
-        bit_in_file
-            .read_exact(&mut payload[payload_end..payload_end + n_bytes as usize])?;
+        bit_in_file.read_exact(unsafe {
+            std::slice::from_raw_parts_mut(&mut n_bytes as *mut _ as *mut u8, 2)
+        })?;
+        bit_in_file.read_exact(&mut payload[payload_end..payload_end + n_bytes as usize])?;
         n_bytes_per_packet[i] = n_bytes;
         payload_end += n_bytes as usize;
         _tot_packets += 1;
@@ -162,7 +175,10 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
                         &mut len,
                     ) != 0
                     {
-                        return Err(io::Error::new(io::ErrorKind::InvalidData, "SKP_Silk_SDK_Decode failed"));
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "SKP_Silk_SDK_Decode failed",
+                        ));
                     }
                 }
                 frames += 1;
@@ -191,7 +207,10 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
                         &mut len,
                     ) != 0
                     {
-                        return Err(io::Error::new(io::ErrorKind::InvalidData, "SKP_Silk_SDK_Decode failed"));
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "SKP_Silk_SDK_Decode failed",
+                        ));
                     }
                 }
                 out_ptr = &mut out_ptr[len as usize..];
@@ -202,10 +221,9 @@ pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(),io::Error> {
         tottime += start_time.elapsed().as_micros() as u64;
         _tot_packets += 1;
 
-        speech_out_file
-            .write_all(unsafe {
-                std::slice::from_raw_parts(out.as_ptr() as *const u8, tot_len * 2)
-            })?;
+        speech_out_file.write_all(unsafe {
+            std::slice::from_raw_parts(out.as_ptr() as *const u8, tot_len * 2)
+        })?;
 
         let mut _tot_bytes = 0;
         for i in 0..MAX_LBRR_DELAY {
@@ -250,9 +268,9 @@ mod test {
         match res {
             Ok(_) => {
                 println!("Decoding success!");
-            },
+            }
             Err(e) => {
-                panic!("ERR: {}",e);
+                panic!("ERR: {}", e);
             }
         }
         // assert_eq!(res.is_ok(), true);

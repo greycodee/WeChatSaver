@@ -1,4 +1,4 @@
-pub mod file{
+pub mod file {
     use std::fs::File;
     use std::io;
     use std::io::{Error, ErrorKind, Read, Seek, SeekFrom};
@@ -8,12 +8,15 @@ pub mod file{
 
     const START_HEADER: &str = "apps/";
 
-    fn find_capture_position(file:&mut File) -> io::Result<u64>{
+    fn find_capture_position(file: &mut File) -> io::Result<u64> {
         let mut window = vec![0; START_HEADER.len()];
         let mut position: u64 = 0;
         loop {
             if position > 200 {
-                return Err(Error::new(ErrorKind::NotFound, "wechat backup flag not found!"))
+                return Err(Error::new(
+                    ErrorKind::NotFound,
+                    "wechat backup flag not found!",
+                ));
             }
             file.seek(SeekFrom::Start(position))?;
             file.read_exact(&mut window)?;
@@ -25,7 +28,7 @@ pub mod file{
         }
     }
 
-    fn file_extract(file: File,out_dir: &Path) -> io::Result<()> {
+    fn file_extract(file: File, out_dir: &Path) -> io::Result<()> {
         let total_size = file.metadata()?.len();
         let mut archive = Archive::new(file);
 
@@ -46,7 +49,7 @@ pub mod file{
     }
 
     pub fn unpack_android_backup(android_backup_file: &Path, output_dir: &Path) -> io::Result<()> {
-        if !android_backup_file.exists(){
+        if !android_backup_file.exists() {
             return Err(Error::new(ErrorKind::NotFound, "file not found!"));
         }
         if !output_dir.exists() {
@@ -89,38 +92,40 @@ pub mod file{
         }
         Ok(())
     }
-
 }
 
-mod test{
-    use std::path::Path;
+mod test {
     use super::*;
-    
+    use std::path::Path;
+
     #[test]
-    fn test_unzip_file(){
+    fn test_unzip_file() {
         let zip_file_path = Path::new("/Users/zheng/Downloads/20241024_091952/backup_wechat.zip");
         let out_put_dir = Path::new("/Users/zheng/Downloads/20241024_091952/android_test");
 
-        match crate::wechat::android_backup::file::unpack_zip_file(zip_file_path, out_put_dir){
+        match crate::wechat::android_backup::file::unpack_zip_file(zip_file_path, out_put_dir) {
             Ok(_) => {
                 println!("unzip success");
-            },
+            }
             Err(e) => {
-                panic!("{}",e);
+                panic!("{}", e);
             }
         }
     }
 
     #[test]
-    fn test_unpack_android_backup(){
+    fn test_unpack_android_backup() {
         let android_backup_file = Path::new("/Users/zheng/Downloads/20241024_091952/wechat.bak");
         let output_dir = Path::new("/Users/zheng/Downloads/20241024_091952/android_test");
-        match crate::wechat::android_backup::file::unpack_android_backup(android_backup_file, output_dir){
+        match crate::wechat::android_backup::file::unpack_android_backup(
+            android_backup_file,
+            output_dir,
+        ) {
             Ok(_) => {
                 println!("unpack success");
-            },
+            }
             Err(e) => {
-                panic!("{}",e);
+                panic!("{}", e);
             }
         }
     }

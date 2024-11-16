@@ -1,7 +1,7 @@
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use std::path::Path;
-use wechat_saver_lib::wechat::voice_decode;
 use wechat_saver_lib::wechat::get_all_account;
+use wechat_saver_lib::wechat::voice_decode;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -15,7 +15,6 @@ async fn all_account() -> impl Responder {
     // all_account
     HttpResponse::Ok().json(all_account)
 }
-
 
 #[get("/version")]
 async fn version() -> impl Responder {
@@ -31,7 +30,8 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(version)
             .service(all_account)
-    }).bind(("127.0.0.1",9090))?
-        .run()
-        .await
+    })
+    .bind(("127.0.0.1", 9090))?
+    .run()
+    .await
 }
