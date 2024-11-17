@@ -169,15 +169,18 @@ impl<'a> FileArch<'a> {
                 new_wx_file_index.msg_id = new_msg_id;
 
                 match get_file_dir_name(&old_wx_file_index.path) {
-                    None => {}
+                    None => {
+                        new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
+                    }
                     Some(name) => {
                         match name {
                             FileDirName::Download => {
                                 self.arch_download(get_file_name(&old_wx_file_index.path).unwrap())?;
                                 new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
-                            }
-                            _ => {
-                                new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
+                            },
+                            FileDirName::Voice2 => {
+                                let temp_path = Path::new(get_after_double_slash(&old_wx_file_index.path).unwrap());
+                                new_wx_file_index.path = change_file_extension(temp_path, "mp3").to_str().unwrap().to_string();
                             }
                         }
                     }

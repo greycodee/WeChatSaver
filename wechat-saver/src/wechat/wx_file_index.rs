@@ -31,7 +31,6 @@
 #[derive(Debug, PartialEq)]
 pub enum FileDirName{
     Download,
-    Attachment,
     Voice2,
 }
 
@@ -60,10 +59,12 @@ pub fn get_file_dir_name(input: &str) -> Option<FileDirName> {
         let rest = &input[start + 2..];
         if let Some(end) = rest.find('/') {
             let dir_name = &rest[..end];
-            match dir_name {
-                "Download" => return Some(FileDirName::Download),
-                "attachment" => return Some(FileDirName::Attachment),
-                _ => {}
+            return match dir_name {
+                "Download" => Some(FileDirName::Download),
+                "voice2" => Some(FileDirName::Voice2),
+                _ => {
+                    None
+                }
             }
         }
     }
@@ -115,14 +116,7 @@ mod test {
         let res = get_file_dir_name(input);
         assert_eq!(res, Some(FileDirName::Download));
     }
-
-    #[test]
-    fn test_get_file_dir_name_2(){
-        let input = "wcf://attachment/test.docx";
-        let res = get_file_dir_name(input);
-        assert_eq!(res, Some(FileDirName::Attachment));
-    }
-
+    
     #[test]
     fn test_get_file_dir_name_voice2(){
         let input = "wcf://voice2/cf/37/msg_282155112222fe59241eefe101.amr";

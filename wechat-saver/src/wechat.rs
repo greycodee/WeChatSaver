@@ -11,6 +11,7 @@ mod model;
 mod utils;
 pub mod voice_decode;
 mod wx_file_index;
+mod message_parse;
 
 use crate::wechat::android_backup::file::{unpack_android_backup, unpack_zip_file};
 use account::AccountInfo;
