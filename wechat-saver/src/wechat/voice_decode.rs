@@ -3,8 +3,11 @@ use silkv3_rs::bindings::{
     SKP_Silk_SDK_InitDecoder, SKP_Silk_SDK_get_version, SKP_Silk_SDK_search_for_LBRR,
 };
 use std::fs::File;
-use std::io;
-use std::io::{Read, Seek, Write};
+use std::{fs, io};
+use std::io::{Error, Read, Seek, Write};
+use std::path::{Path, PathBuf};
+use crate::wechat::ffmpeg::transcode_pcm_to_mp3;
+use crate::wechat::utils::change_file_extension;
 
 const MAX_BYTES_PER_FRAME: usize = 1024;
 const MAX_INPUT_FRAMES: usize = 5;
@@ -13,7 +16,7 @@ const FRAME_LENGTH_MS: usize = 20;
 const MAX_API_FS_KHZ: usize = 48;
 const MAX_LBRR_DELAY: usize = 2;
 
-pub fn silk_v3_decoder(in_file: &str, out_file: &str) -> Result<(), io::Error> {
+pub fn silk_v3_decoder(in_file: &Path, out_file: &Path) -> std::io::Result<()> {
     let mut tottime: u64 = 0;
     let mut _tot_packets: i32 = 0;
     let mut payload = vec![0u8; MAX_BYTES_PER_FRAME * MAX_INPUT_FRAMES * (MAX_LBRR_DELAY + 1)];
@@ -255,16 +258,61 @@ pub fn get_version() -> Result<String, std::str::Utf8Error> {
     }
 }
 
+pub fn amr_decode(amr_file: &Path) -> std::io::Result<PathBuf>{
+    if !amr_file.exists(){
+        return Err(Error::new(io::ErrorKind::NotFound, "File not found"))
+    }
+
+    let pcm_file = change_file_extension(amr_file, "pcm");
+    silk_v3_decoder(amr_file, &pcm_file)?;
+    Ok(pcm_file)
+}
+
+pub fn wechat_voice_decode(voice_file: &Path) -> std::io::Result<PathBuf> {
+    if let Ok(pcm_file) = amr_decode(voice_file){
+        let mp3_file = transcode_pcm_to_mp3(&pcm_file)?;
+        Ok(mp3_file)
+    } else {
+        Err(Error::new(io::ErrorKind::InvalidData, "Failed to decode voice file"))
+    }
+}
+
+pub fn convert_all_voice_to_mp3(voice_dir_path:&Path) -> std::io::Result<()> {
+    if !voice_dir_path.exists() {
+        return Err(Error::new(std::io::ErrorKind::NotFound, "voice2 not found"));
+    }
+    for entry in fs::read_dir(voice_dir_path)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let dst_path = voice_dir_path.join(entry.file_name());
+        if file_type.is_file() {
+            match wechat_voice_decode(&dst_path) {
+                Ok(_) => {
+                    fs::remove_file(&dst_path)?;
+                    fs::remove_file(change_file_extension(&dst_path,"pcm"))?
+                }
+                Err(e) => {
+                    println!("transcode error: {:?}", e);
+                }
+            }
+        }else{
+            convert_all_voice_to_mp3(&dst_path)?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
+    use crate::wechat::utils::change_file_extension;
     use super::*;
 
     #[test]
     fn test_silk_v3_decoder() {
-        let res = silk_v3_decoder(
-            "/tmp/msg_152059061922b0890a24269102.amr",
-            "/tmp/msg_152059061922b0890a24269102.pcm",
-        );
+
+        let src_file_path = Path::new("/Volumes/hkdisk/wechat-backup/20241117/wxid_jafjkmbud9l912/voice2/e6/17/msg_3219401122221c8bfd467b8103.amr");
+        let dst_file_path = change_file_extension(src_file_path, "pcm");
+        let res = silk_v3_decoder(src_file_path, &dst_file_path);
         match res {
             Ok(_) => {
                 println!("Decoding success!");
@@ -281,5 +329,19 @@ mod test {
     fn test_get_version() {
         let version = get_version().unwrap();
         println!("Version: {}", version);
+    }
+
+    #[test]
+    fn test_wechat_voice_decode() {
+        let voice_file = Path::new("/Volumes/hkdisk/wechat-backup/20241117/wxid_jafjkmbud9l912/voice2/e6/17/msg_3219401122221c8bfd467b8103.amr");
+        let res = wechat_voice_decode(voice_file);
+        match res {
+            Ok(mp3) => {
+                println!("Decoding success! {:#?}",mp3);
+            }
+            Err(e) => {
+                panic!("ERR: {}", e);
+            }
+        }
     }
 }

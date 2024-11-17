@@ -3,6 +3,8 @@ use crate::wechat::databases::wechat_saver_db::WeChatSaverDB;
 use std::fs;
 use std::io::{Error, Result};
 use std::path::{Path, PathBuf};
+use crate::wechat::utils::change_file_extension;
+use crate::wechat::voice_decode::{convert_all_voice_to_mp3, wechat_voice_decode};
 use crate::wechat::wx_file_index::{get_after_double_slash, get_file_dir_name, get_file_name, FileDirName};
 
 #[derive(Debug)]
@@ -36,9 +38,8 @@ impl<'a> FileArch<'a> {
     }
 
     pub fn arch_all(&mut self) -> Result<()> {
-        self.arch_voice()?;
         self.arch_db()?;
-
+        self.arch_voice()?;
         self.arch_image()?;
         self.arch_avatar()?;
         self.arch_video()?;
@@ -46,13 +47,6 @@ impl<'a> FileArch<'a> {
         self.arch_attachment()?;
         // TODO 删除临时文件夹
         // TODO 删除lock文件
-        Ok(())
-    }
-
-    fn arch_voice(&self) -> Result<()> {
-        let src_path = Path::new(&self.account_info.voice_path);
-        let dst_path = &self.dest_path.join("voice2");
-        self.copy_dir_all(src_path, dst_path)?;
         Ok(())
     }
 
@@ -180,12 +174,14 @@ impl<'a> FileArch<'a> {
                         match name {
                             FileDirName::Download => {
                                 self.arch_download(get_file_name(&old_wx_file_index.path).unwrap())?;
+                                new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
                             }
-                            FileDirName::Attachment => {}
+                            _ => {
+                                new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
+                            }
                         }
                     }
                 }
-                new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
                 if let Err(e) = self.wechat_saver_db.save_wx_file_index(&new_wx_file_index){
                     println!("save wx file index error: {:?}", e);
                 }
@@ -193,6 +189,37 @@ impl<'a> FileArch<'a> {
         }
         Ok(())
     }
+
+    fn arch_single_voice(&self,voice_file_path:&str) -> Result<PathBuf> {
+        let amr_file_path = &self.account_info.voice_path.parent().unwrap().join(voice_file_path);
+        if !amr_file_path.exists(){
+            return Err(Error::new(std::io::ErrorKind::NotFound,format!("amr file not found: {:?}",amr_file_path)));
+        }
+        let mp3_file_path = wechat_voice_decode(amr_file_path)?;
+        let dst_mp3_relative_path = change_file_extension(voice_file_path.as_ref(), "mp3");
+        let dst_path = &self.dest_path.join(&dst_mp3_relative_path);
+        if !dst_path.parent().unwrap().exists(){
+            fs::create_dir_all(dst_path.parent().unwrap())?;
+        }
+        if mp3_file_path.exists() {
+            fs::copy(mp3_file_path, dst_path)?;
+        }
+        Ok(dst_mp3_relative_path)
+    }
+
+    fn arch_voice(&self) -> Result<()> {
+        let src_path = Path::new(&self.account_info.voice_path);
+        let dst_path = &self.dest_path.join("voice2");
+        self.copy_dir_all(src_path, dst_path)?;
+
+        let sd_card_voice_path = Path::new(&self.account_info.sd_card_voice_path);
+        self.copy_dir_all(sd_card_voice_path, dst_path)?;
+
+        convert_all_voice_to_mp3(dst_path)?;
+        Ok(())
+    }
+
+
 
     fn arch_image(&self) -> Result<()> {
         let src_path = Path::new(&self.account_info.image_path);
@@ -212,9 +239,11 @@ impl<'a> FileArch<'a> {
         let src_path = Path::new(&self.account_info.video_path);
         let dst_path = &self.dest_path.join("video");
         self.copy_dir_all(src_path, dst_path)?;
+
+        let sd_card_video_path = Path::new(&self.account_info.sd_card_video_path);
+        self.copy_dir_all(sd_card_video_path, dst_path)?;
         Ok(())
     }
-
     fn arch_download(&self,file_name: &str) -> Result<()> {
         let file_path = &self.account_info.download_path.join(file_name);
         let dst_path = &self.dest_path.join("Download");
@@ -265,6 +294,7 @@ impl<'a> FileArch<'a> {
     }
 }
 
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -307,5 +337,12 @@ mod test {
         let dest_path = Path::new("/tmp/com.tencent.mm");
         let file_arch = FileArch::new(dest_path, &account_info).unwrap();
         file_arch.arch_db_user_info_table().unwrap();
+    }
+
+    #[test]
+    fn test_path(){
+        let p = Path::new("/asd/bbb/ccc/aa.d");
+        let parent = p.parent().unwrap();
+        println!("{:?}",parent);
     }
 }

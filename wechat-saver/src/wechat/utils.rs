@@ -1,3 +1,4 @@
+use std::path::{Path, PathBuf};
 use md5::{Digest, Md5};
 
 pub fn gen_db_private_key(uin: &str) -> String {
@@ -15,6 +16,13 @@ pub fn md5_encode(input: &str) -> String {
     result
 }
 
+pub fn change_file_extension(file_path: &Path,extension: &str) -> PathBuf {
+    let mut new_path = file_path.to_path_buf();
+    new_path.set_extension(extension);
+    new_path
+}
+
+
 mod test {
     use crate::wechat::utils::gen_db_private_key;
 
@@ -29,6 +37,13 @@ mod test {
     fn test_md5_encode() {
         let input = "123123";
         let res = crate::wechat::utils::md5_encode(input);
+        println!("{:?}", res);
+    }
+
+    #[test]
+    fn test_change_file_extension() {
+        let file_path = std::path::Path::new("/tmp/test.txt");
+        let res = crate::wechat::utils::change_file_extension(file_path, "mp3");
         println!("{:?}", res);
     }
 }

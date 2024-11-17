@@ -23,6 +23,8 @@ pub struct AccountInfo {
     pub account_uin: String,
     pub video_path: PathBuf,
     pub voice_path: PathBuf,
+    pub sd_card_video_path: PathBuf,
+    pub sd_card_voice_path: PathBuf,
     pub image_path: PathBuf,
     pub avatar_path: PathBuf,
     pub download_path: PathBuf,
@@ -47,18 +49,22 @@ impl AccountInfo {
         let attachment_path = account_file_path.join("attachment");
         let image_path = account_file_path.join("image2");
         let avatar_path = account_file_path.join("avatar");
+        let video_path = account_file_path.join("video");
+        let voice_path = account_file_path.join("voice2");
         let en_micro_msg_db_path = account_file_path.join("EnMicroMsg.db");
         let wx_file_index_db_path = account_file_path.join("WxFileIndex.db");
 
         let sd_card_dir_path = base_path
             .join("Android/data/com.tencent.mm/MicroMsg");
+        // TODO 最新版微信都迁移到了系统attachment目录下
         let download_path = sd_card_dir_path.join("Download");
 
         let account_sd_card_dir_name = get_sd_card_dir_name(base_path, uin)?;
         let account_sd_card_dir_path = sd_card_dir_path.join(account_sd_card_dir_name);
 
-        let video_path = account_sd_card_dir_path.join("video");
-        let voice_path = account_sd_card_dir_path.join("voice2");
+        // TODO 最新版微信都迁移到了系统app目录下
+        let sd_card_video_path = account_sd_card_dir_path.join("video");
+        let sd_card_voice_path = account_sd_card_dir_path.join("voice2");
         let openapi_path = account_sd_card_dir_path.join("openapi");
 
 
@@ -83,6 +89,8 @@ impl AccountInfo {
                 account_uin: uin.to_string(),
                 video_path,
                 voice_path,
+                sd_card_video_path,
+                sd_card_voice_path,
                 image_path,
                 avatar_path,
                 download_path,
