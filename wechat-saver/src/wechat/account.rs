@@ -26,6 +26,7 @@ pub struct AccountInfo {
     pub image_path: PathBuf,
     pub avatar_path: PathBuf,
     pub download_path: PathBuf,
+    pub attachment_path: PathBuf,
     pub openapi_path: PathBuf,
     pub en_micro_msg_db_path: PathBuf,
     pub wx_file_index_db_path: PathBuf,
@@ -43,18 +44,23 @@ impl AccountInfo {
             .join("apps/com.tencent.mm/r/MicroMsg")
             .join(account_dir_name);
 
+        let attachment_path = account_file_path.join("attachment");
         let image_path = account_file_path.join("image2");
         let avatar_path = account_file_path.join("avatar");
         let en_micro_msg_db_path = account_file_path.join("EnMicroMsg.db");
         let wx_file_index_db_path = account_file_path.join("WxFileIndex.db");
+
+        let sd_card_dir_path = base_path
+            .join("Android/data/com.tencent.mm/MicroMsg");
+        let download_path = sd_card_dir_path.join("Download");
+
         let account_sd_card_dir_name = get_sd_card_dir_name(base_path, uin)?;
-        let account_sd_card_dir_path = base_path
-            .join("Android/data/com.tencent.mm/MicroMsg")
-            .join(account_sd_card_dir_name);
+        let account_sd_card_dir_path = sd_card_dir_path.join(account_sd_card_dir_name);
 
         let video_path = account_sd_card_dir_path.join("video");
         let voice_path = account_sd_card_dir_path.join("voice2");
-        let download_path = account_sd_card_dir_path.join("Download");
+        let openapi_path = account_sd_card_dir_path.join("openapi");
+
 
         let db_private_key = gen_db_private_key(uin);
         let mut db_conn;
@@ -80,7 +86,8 @@ impl AccountInfo {
                 image_path,
                 avatar_path,
                 download_path,
-                openapi_path: Default::default(),
+                attachment_path,
+                openapi_path,
                 en_micro_msg_db_path,
                 wx_file_index_db_path,
                 db_private_key,

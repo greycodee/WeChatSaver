@@ -3,9 +3,10 @@ use crate::wechat::databases::wechat_saver_db::WeChatSaverDB;
 use std::fs;
 use std::io::{Error, Result};
 use std::path::{Path, PathBuf};
+use crate::wechat::wx_file_index::{get_after_double_slash, get_file_dir_name, get_file_name, FileDirName};
 
 #[derive(Debug)]
-struct FileArch<'a> {
+pub struct FileArch<'a> {
     account_info: &'a AccountInfo,
     dest_path: PathBuf,
     wechat_saver_db: WeChatSaverDB,
@@ -15,7 +16,7 @@ impl<'a> FileArch<'a> {
     /**
         @param base_path: workspace
     */
-    fn new(base_path: &Path, account_info: &'a AccountInfo) -> std::io::Result<Self> {
+    pub fn new(base_path: &Path, account_info: &'a AccountInfo) -> std::io::Result<Self> {
         let user_space_path = base_path.join(&account_info.wx_user_info.wx_id);
         if !user_space_path.exists() {
             fs::create_dir_all(&user_space_path)?;
@@ -34,14 +35,15 @@ impl<'a> FileArch<'a> {
         }
     }
 
-    fn arch_all(&mut self) -> Result<()> {
+    pub fn arch_all(&mut self) -> Result<()> {
         self.arch_voice()?;
         self.arch_db()?;
+
         self.arch_image()?;
         self.arch_avatar()?;
         self.arch_video()?;
-        self.arch_download()?;
-
+        self.arch_openapi()?;
+        self.arch_attachment()?;
         // TODO 删除临时文件夹
         // TODO 删除lock文件
         Ok(())
@@ -55,7 +57,6 @@ impl<'a> FileArch<'a> {
     }
 
     fn arch_db(&mut self) -> Result<()> {
-        // self.account_info.db_conn.init_save_db()
         // TODO 考虑增量备份的情况
         let db_path = &self.dest_path.join("db");
         if !db_path.exists() {
@@ -67,6 +68,11 @@ impl<'a> FileArch<'a> {
         let wx_file_index_db_path = Path::new(&self.account_info.wx_file_index_db_path);
         let wx_file_index_db_dst_path = db_path.join(wx_file_index_db_path.file_name().unwrap());
         fs::copy(wx_file_index_db_path, wx_file_index_db_dst_path)?;
+
+        self.arch_db_message_table()?;
+        self.arch_db_r_contact_table()?;
+        self.arch_db_user_info_table()?;
+
         Ok(())
     }
 
@@ -93,6 +99,7 @@ impl<'a> FileArch<'a> {
                             if let Ok(count) = self.wechat_saver_db.save_message(&message) {
                                 // TODO 如果是多线程，注意获取可能不准确，后续上多线程的话，msg_id 进行手动维护
                                 let latest_rows_id = self.wechat_saver_db.get_last_insert_row_id();
+                                println!("latest_rows_id: {}", latest_rows_id);
                                 // TODO process WXFileIndex3
                                 // TODO get msg_id of new insert message
                                 self.arch_db_wx_file_index_by_msg_id(message.msg_id,latest_rows_id)?;
@@ -162,11 +169,23 @@ impl<'a> FileArch<'a> {
     }
 
     fn arch_db_wx_file_index_by_msg_id(&self,old_msg_id:i64,new_msg_id:i64) -> Result<()> {
-        // TODO rewrite path
         if let Ok(old_wx_file_index_opt) = self.account_info.db_conn.select_wx_file_index_by_msg_id(old_msg_id){
             if let Some(old_wx_file_index) = old_wx_file_index_opt {
                 let mut new_wx_file_index = old_wx_file_index.clone();
                 new_wx_file_index.msg_id = new_msg_id;
+
+                match get_file_dir_name(&old_wx_file_index.path) {
+                    None => {}
+                    Some(name) => {
+                        match name {
+                            FileDirName::Download => {
+                                self.arch_download(get_file_name(&old_wx_file_index.path).unwrap())?;
+                            }
+                            FileDirName::Attachment => {}
+                        }
+                    }
+                }
+                new_wx_file_index.path = get_after_double_slash(&old_wx_file_index.path).unwrap().to_string();
                 if let Err(e) = self.wechat_saver_db.save_wx_file_index(&new_wx_file_index){
                     println!("save wx file index error: {:?}", e);
                 }
@@ -196,9 +215,29 @@ impl<'a> FileArch<'a> {
         Ok(())
     }
 
-    fn arch_download(&self) -> Result<()> {
-        let src_path = Path::new(&self.account_info.download_path);
+    fn arch_download(&self,file_name: &str) -> Result<()> {
+        let file_path = &self.account_info.download_path.join(file_name);
         let dst_path = &self.dest_path.join("Download");
+        if !dst_path.exists(){
+            fs::create_dir_all(dst_path)?;
+        }
+        let dst_path = dst_path.join(file_name);
+        if file_path.exists() {
+            fs::copy(file_path, dst_path)?;
+        }
+        Ok(())
+    }
+
+    fn arch_openapi(&self) -> Result<()> {
+        let src_path = Path::new(&self.account_info.openapi_path);
+        let dst_path = &self.dest_path.join("openapi");
+        self.copy_dir_all(src_path, dst_path)?;
+        Ok(())
+    }
+
+    fn arch_attachment(&self) -> Result<()> {
+        let src_path = Path::new(&self.account_info.attachment_path);
+        let dst_path = &self.dest_path.join("attachment");
         self.copy_dir_all(src_path, dst_path)?;
         Ok(())
     }

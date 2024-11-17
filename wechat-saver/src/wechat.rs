@@ -101,18 +101,13 @@ mod test {
 
     use super::*;
 
-    #[test]
-    fn test_get_all_uin() {
-        let base_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8");
-        let res = get_all_uin(base_path);
-        println!("{:?}", res);
-    }
+
 
     #[test]
     fn test_run() {
-        let work_space = Path::new("/tmp/com.tencent.mm");
-        let android_backup_file = Path::new("/Users/zheng/Downloads/20241024_091952/wechat.bak");
-        let android_sdcard = Path::new("/Users/zheng/Downloads/20241024_091952/backup_wechat.zip");
+        let work_space = Path::new("/Volumes/hkdisk/wechat-backup/20241117");
+        let android_backup_file = Path::new("/Volumes/hkdisk/wechat-backup/20241024_091952/wechat.bak");
+        let android_sdcard = Path::new("/Volumes/hkdisk/wechat-backup/20241024_091952/backup_wechat.zip");
         match process_backup_file(work_space, android_backup_file, android_sdcard) {
             Ok(temp_dir) => {
                 println!("temp_dir: {:?}", temp_dir);
@@ -121,5 +116,41 @@ mod test {
                 panic!("{}", e);
             }
         }
+    }
+
+    #[test]
+    fn test_get_all_uin() {
+        let base_path = Path::new("/Volumes/hkdisk/wechat-backup/20241117/84105892-ff2b-4377-914b-2b2e24b24661");
+        let res = get_all_uin(base_path);
+        println!("{:?}", res);
+    }
+
+    #[test]
+    fn test_get_all_account() {
+        let base_path = Path::new("/Volumes/hkdisk/wechat-backup/20241117/84105892-ff2b-4377-914b-2b2e24b24661");
+        let res = get_all_account(base_path);
+        println!("{:?}", res);
+    }
+
+    #[test]
+    fn test_arch_all(){
+        let base_path = Path::new("/Volumes/hkdisk/wechat-backup/20241117/84105892-ff2b-4377-914b-2b2e24b24661");
+        let res = get_all_account(base_path);
+        let account_vec = res.unwrap();
+        let account = &account_vec[2];
+
+        println!("account: {:?}",account);
+
+        let workspace = Path::new("/Volumes/hkdisk/wechat-backup/20241117");
+
+        let file_arch = file_arch::FileArch::new(workspace,account);
+        let res = file_arch.unwrap().arch_all();
+        println!("res: {:?}",res);
+
+        // for account in res.unwrap(){
+        //     let file_arch = file_arch::FileArch::new(workspace,&account);
+        //     let res = file_arch.unwrap().arch_all();
+        //     println!("res: {:?}",res);
+        // }
     }
 }

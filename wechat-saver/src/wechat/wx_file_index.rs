@@ -27,43 +27,50 @@
 // 1048625 表情包
 // 822083633 是引用消息
 
-enum FileType {
-    Image,
-    Video,
-    Voice,
-    ShareCard,
-    RedPacket,
 
-    File,
-    Other,
+#[derive(Debug, PartialEq)]
+pub enum FileDirName{
+    Download,
+    Attachment,
 }
 
-struct WxFileIndex {
-    msg_id: i64,
-    username: String,
-    msg_type: i32,
-    msg_sub_type: i32,
-    path: String,
-    size: i64,
-    msg_time: i64,
-    hash: Vec<u8>,
-    disk_space: i64,
-    link_uuid: Vec<u8>,
-}
 
-impl WxFileIndex {
-    // TODO 转移到新db
-    // 解析文件类型
 
-    fn get_first_value_after_double_slash(input: &str) -> Option<&str> {
-        if let Some(start) = input.find("//") {
-            let rest = &input[start + 2..];
-            if let Some(end) = rest.find('/') {
-                return Some(&rest[..end]);
-            }
+pub fn get_first_value_after_double_slash(input: &str) -> Option<&str> {
+    if let Some(start) = input.find("//") {
+        let rest = &input[start + 2..];
+        if let Some(end) = rest.find('/') {
+            return Some(&rest[..end]);
         }
-        None
     }
+    None
+}
+
+pub fn get_after_double_slash(input: &str) -> Option<&str> {
+    if let Some(start) = input.find("//") {
+        let rest = &input[start + 2..];
+        return Some(rest);
+    }
+    None
+}
+
+pub fn get_file_dir_name(input: &str) -> Option<FileDirName> {
+    if let Some(start) = input.find("//") {
+        let rest = &input[start + 2..];
+        if rest.starts_with("Download") {
+            return Some(FileDirName::Download);
+        } else if rest.starts_with("attachment") {
+            return Some(FileDirName::Attachment);
+        }
+    }
+    None
+}
+
+pub fn get_file_name(input: &str) -> Option<&str> {
+    if let Some(start) = input.rfind('/') {
+        return Some(&input[start + 1..]);
+    }
+    None
 }
 
 #[cfg(test)]
@@ -73,7 +80,56 @@ mod test {
     #[test]
     fn test_get_first_value_after_double_slash() {
         let input = "wcf://attachment/clash_for_android.apk";
-        let res = WxFileIndex::get_first_value_after_double_slash(input);
+        let res = get_first_value_after_double_slash(input);
         assert_eq!(res, Some("attachment"));
+    }
+
+    #[test]
+    fn test_get_first_value_after_double_slash_1() {
+        let input = "wcf://Download/test.docx";
+        let res = get_first_value_after_double_slash(input);
+        assert_eq!(res, Some("Download"));
+    }
+
+    #[test]
+    fn test_get_after_double_slash(){
+        let input = "wcf://Download/test.docx";
+        let res = get_after_double_slash(input);
+        assert_eq!(res, Some("Download/test.docx"));
+    }
+
+    #[test]
+    fn test_get_after_double_slash_2(){
+        let input = "wcf://image2/d7/0c/th_d70cd0752c8e5042c86de60349dd6b2b";
+        let res = get_after_double_slash(input);
+        assert_eq!(res, Some("image2/d7/0c/th_d70cd0752c8e5042c86de60349dd6b2b"));
+    }
+
+    #[test]
+    fn test_get_file_dir_name(){
+        let input = "wcf://Download/test.docx";
+        let res = get_file_dir_name(input);
+        assert_eq!(res, Some(FileDirName::Download));
+    }
+
+    #[test]
+    fn test_get_file_dir_name_2(){
+        let input = "wcf://attachment/test.docx";
+        let res = get_file_dir_name(input);
+        assert_eq!(res, Some(FileDirName::Attachment));
+    }
+
+    #[test]
+    fn test_get_file_dir_name_none(){
+        let input = "wcf://image2/d7/0c/th_d70cd0752c8e5042c86de60349dd6b2b";
+        let res = get_file_dir_name(input);
+        assert_eq!(res, None);
+    }
+
+    #[test]
+    fn test_get_file_name(){
+        let input = "wcf://Download/test.docx";
+        let res = get_file_name(input);
+        assert_eq!(res, Some("test.docx"));
     }
 }
