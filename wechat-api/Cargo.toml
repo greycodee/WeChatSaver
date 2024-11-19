@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 actix-web = "4"
 wechat-saver = { path = "../wechat-saver" }
+anyhow = "1.0.93"
+rusqlite = {version = "0.32.1",features = ["sqlcipher"]}

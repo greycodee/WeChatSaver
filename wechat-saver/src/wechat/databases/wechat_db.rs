@@ -193,6 +193,14 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_save_wechat_db_to_plan(){
+        let db_path = "/Volumes/hkdisk/wechat-backup/20241117/84105892-ff2b-4377-914b-2b2e24b24661/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/newuba.db";
+        let db_private_key = "626d0bc";
+        let result = save_wechat_db_to_plan(db_path, db_private_key);
+        println!("{:?}", result);
+    }
+
+    #[test]
     fn test_select_message_with_limit() {
         let db_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/EnMicroMsg.db");
         let wx_file_index_db_path = Path::new("/tmp/com.tencent.mm/2aa8c917-cab9-446e-85df-b777695ddcc8/apps/com.tencent.mm/r/MicroMsg/79b23ef49a3016d8c52a787fc4ab59e4/WxFileIndex.db");

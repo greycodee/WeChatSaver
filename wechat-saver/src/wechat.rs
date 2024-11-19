@@ -2,14 +2,14 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 use std::path::{Path, PathBuf};
 mod account;
-pub mod android_backup;
+mod android_backup;
 mod databases;
-pub mod ffmpeg;
+mod ffmpeg;
 mod file_arch;
 mod file_path;
-mod model;
+pub mod model;
 mod utils;
-pub mod voice_decode;
+mod voice_decode;
 mod wx_file_index;
 mod message_parse;
 
