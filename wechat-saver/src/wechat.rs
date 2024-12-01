@@ -96,6 +96,17 @@ fn get_all_uin(base_path: &Path) -> Vec<String> {
     uin_vec
 }
 
+
+pub fn quick_run(work_space: &Path, android_backup_file: &Path, android_sdcard_file: &Path) -> std::io::Result<()> {
+    let temp_dir = process_backup_file(work_space, android_backup_file, android_sdcard_file)?;
+    let account_vec = get_all_account(&temp_dir)?;
+    for account in account_vec {
+        let file_arch = file_arch::FileArch::new(work_space, &account);
+        file_arch.unwrap().arch_all()?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use std::path::Path;
