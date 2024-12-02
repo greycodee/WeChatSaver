@@ -26,3 +26,7 @@ rusqlite = {version = "0.32.1",features = ["sqlcipher"]}
 - **wechat-api**: 提供http api接口，提供文件上传的接口。处理逻辑使用`wechat-saver-lib`模块
 - **wechat-web**: web页面
   
+## TODO
+
+- [ ] optimize unit test
+- [ ] send progress data of file extract 
