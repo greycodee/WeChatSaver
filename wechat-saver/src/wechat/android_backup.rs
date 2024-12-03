@@ -42,9 +42,6 @@ pub mod file {
             let progress = (unpacked_size as f64 / total_size as f64) * 100.0;
             println!("Progress: {:.2}%", progress);
         }
-
-        // archive.unpack(out_dir)?;
-
         Ok(())
     }
 

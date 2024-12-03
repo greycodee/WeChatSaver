@@ -236,9 +236,10 @@ pub fn silk_v3_decoder(in_file: &Path, out_file: &Path) -> std::io::Result<()> {
         payload_end -= n_bytes_per_packet[0] as usize;
         n_bytes_per_packet.copy_within(1.., 0);
 
-        processed_size = bit_in_file.stream_position()?;
-        let progress = (processed_size as f64 / total_size as f64) * 100.0;
-        println!("Progress: {:.2}% ", progress);
+        // print Progress
+        // processed_size = bit_in_file.stream_position()?;
+        // let progress = (processed_size as f64 / total_size as f64) * 100.0;
+        // println!("Progress: {:.2}% ", progress);
     }
 
     unsafe {
