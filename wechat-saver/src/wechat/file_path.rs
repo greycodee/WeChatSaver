@@ -30,9 +30,6 @@ pub fn get_avatar_path(wx_id: &str) -> PathBuf {
 mod test {
     use std::path::Path;
 
-    // const BASE_PATH: &Path = Path::new("/sdcard/Android/data/com.tencent.mm");
-    // use super::*;
-
     #[test]
     fn test_get_system_file_name() {
         let uin = "1727242265";
