@@ -36,6 +36,7 @@ fn test_process_backup_file() {
 fn test_get_all_account() {
     common::setup();
     let temp_path = env::var("TEMP_PATH").unwrap();
+    println!("temp_path: {:?}", temp_path);
     let base_path = Path::new(temp_path.as_str());
     let res = get_all_account(base_path);
     println!("{:?}", res);
